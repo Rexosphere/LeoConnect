@@ -34,7 +34,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.rexosphere.leoconnect.presentation.home.HomeScreen
+import com.rexosphere.leoconnect.presentation.MainScreen
 
 class LoginScreen : Screen {
     @Composable
@@ -45,7 +45,7 @@ class LoginScreen : Screen {
 
         // Navigate to home if signed in successfully
         if (state.isSignedIn) {
-            navigator.replace(HomeScreen())
+            navigator.replace(MainScreen())
             return
         }
 

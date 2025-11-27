@@ -8,6 +8,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -72,6 +73,32 @@ class KtorRemoteDataSource(
 
     suspend fun getClubsByDistrict(district: String): List<Club> {
         return client.get("$baseUrl/clubs?district=$district").body()
+    }
+
+    suspend fun getUserProfile(uid: String? = null): UserProfile {
+        val url = if (uid != null) "$baseUrl/users/me?uid=$uid" else "$baseUrl/users/me"
+        return client.get(url) {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): UserProfile {
+        return client.patch("$baseUrl/users/me") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(mapOf(
+                "leoId" to leoId,
+                "assignedClubId" to assignedClubId
+            ))
+        }.body()
     }
 }
 

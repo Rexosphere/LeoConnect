@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import com.rexosphere.leoconnect.presentation.components.PostCard
+import com.rexosphere.leoconnect.presentation.components.EmptyState
 
 class HomeScreen : Screen {
     @Composable
@@ -33,12 +34,18 @@ class HomeScreen : Screen {
                     )
                 }
                 is HomeUiState.Success -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(uiState.posts) { post ->
-                            PostCard(
-                                post = post,
-                                onLikeClick = { screenModel.likePost(post.postId) }
-                            )
+                    if (uiState.posts.isEmpty()) {
+                        EmptyState(
+                            onRefresh = { screenModel.loadFeed() }
+                        )
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(uiState.posts) { post ->
+                                PostCard(
+                                    post = post,
+                                    onLikeClick = { screenModel.likePost(post.postId) }
+                                )
+                            }
                         }
                     }
                 }

@@ -94,4 +94,37 @@ class LeoRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getUserProfile(): Result<UserProfile> {
+        return try {
+            val uid = authService.getCurrentUserId()
+            val profile = remoteDataSource.getUserProfile(uid)
+            _authState.value = profile
+            Result.success(profile)
+        } catch (e: Exception) {
+            // If fetching profile fails (e.g. 404 User not found), try to sync/create user
+            try {
+                val token = authService.getCurrentToken()
+                if (token != null) {
+                    val profile = remoteDataSource.googleSignIn(token)
+                    _authState.value = profile
+                    return Result.success(profile)
+                }
+            } catch (syncError: Exception) {
+                // Ignore sync error and return original error
+                e.printStackTrace()
+            }
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): Result<UserProfile> {
+        return try {
+            val profile = remoteDataSource.updateUserProfile(leoId, assignedClubId)
+            _authState.value = profile
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

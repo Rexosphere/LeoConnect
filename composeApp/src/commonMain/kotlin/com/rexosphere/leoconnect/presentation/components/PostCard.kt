@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +49,9 @@ fun PostCard(
                         resource = { asyncPainterResource(data = post.authorLogo) },
                         contentDescription = "Author Logo",
                         modifier = Modifier.size(40.dp).clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        onLoading = { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) },
+                        onFailure = { Icon(Icons.Default.Person, contentDescription = null) }
                     )
                 } else {
                     // Placeholder
@@ -69,7 +74,12 @@ fun PostCard(
                     resource = { asyncPainterResource(data = post.imageUrl) },
                     contentDescription = "Post Image",
                     modifier = Modifier.fillMaxWidth().height(200.dp).clip(MaterialTheme.shapes.medium),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    onLoading = { progress -> CircularProgressIndicator(progress) },
+                    onFailure = { exception -> 
+                        // Log exception if possible or show error icon
+                        Icon(Icons.Default.Warning, contentDescription = "Error", tint = MaterialTheme.colorScheme.error)
+                    }
                 )
             }
 

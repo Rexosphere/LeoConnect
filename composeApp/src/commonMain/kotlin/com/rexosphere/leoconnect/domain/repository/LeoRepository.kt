@@ -50,4 +50,14 @@ interface LeoRepository {
      * Get clubs by district
      */
     suspend fun getClubsByDistrict(district: String): Result<List<Club>>
+
+    /**
+     * Get current user profile
+     */
+    suspend fun getUserProfile(): Result<UserProfile>
+
+    /**
+     * Update user profile
+     */
+    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): Result<UserProfile>
 }
