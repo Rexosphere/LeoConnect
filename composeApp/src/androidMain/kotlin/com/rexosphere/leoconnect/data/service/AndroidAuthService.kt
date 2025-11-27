@@ -7,11 +7,13 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.rexosphere.leoconnect.domain.service.AuthService
 import dev.gitlive.firebase.auth.FirebaseAuth
 import dev.gitlive.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
+import com.rexosphere.leoconnect.util.ActivityProvider
 
 class AndroidAuthService(
     private val context: Context,
@@ -26,23 +28,17 @@ class AndroidAuthService(
 
     override suspend fun signInWithGoogle(): Result<String> {
         return try {
-            // Verify we have an Activity context
-            if (context !is Activity) {
-                Log.e(TAG, "Context is not an Activity: ${context.javaClass.simpleName}")
-                return Result.failure(Exception(
-                    "Sign-in requires an Activity context. " +
-                    "Please make sure you're passing the Activity, not Application context."
-                ))
-            }
+
 
             val webClientId = getWebClientId()
             Log.d(TAG, "Starting Google Sign-In with Web Client ID: ${webClientId.take(20)}...")
 
             // 1. Configure Google Sign-In
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false) // Show all Google accounts
-                .setServerClientId(webClientId)
-                .setAutoSelectEnabled(false) // Always show account picker
+            // Generate a nonce (optional but recommended for security)
+            val hashedNonce = java.util.UUID.randomUUID().toString()
+            
+            val googleIdOption = GetSignInWithGoogleOption.Builder(webClientId)
+                .setNonce(hashedNonce)
                 .build()
 
             val request = GetCredentialRequest.Builder()
@@ -52,9 +48,15 @@ class AndroidAuthService(
             Log.d(TAG, "Requesting credentials...")
 
             // 2. Get the Google ID token using Credential Manager
+            val currentActivity = ActivityProvider.currentActivity
+            if (currentActivity == null) {
+                Log.e(TAG, "No active activity found for sign-in")
+                return Result.failure(Exception("No active activity found. Please try again."))
+            }
+
             val result = credentialManager.getCredential(
                 request = request,
-                context = context,
+                context = currentActivity,
             )
 
             Log.d(TAG, "Received credential type: ${result.credential.type}")
@@ -78,6 +80,33 @@ class AndroidAuthService(
                     Log.d(TAG, "Successfully signed in to Firebase")
                     Result.success(firebaseToken)
                 }
+                is androidx.credentials.CustomCredential -> {
+                    if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                        try {
+                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                            val googleIdToken = googleIdTokenCredential.idToken
+                            Log.d(TAG, "Successfully received Google ID token from CustomCredential")
+
+                            // 3. Sign in to Firebase with the Google ID token
+                            Log.d(TAG, "Signing in to Firebase...")
+                            val authCredential = GoogleAuthProvider.credential(googleIdToken, null)
+                            firebaseAuth.signInWithCredential(authCredential)
+
+                            // 4. Get the Firebase ID token
+                            val firebaseToken = firebaseAuth.currentUser?.getIdToken(false)
+                                ?: return Result.failure(Exception("Failed to get Firebase token after sign in"))
+
+                            Log.d(TAG, "Successfully signed in to Firebase")
+                            Result.success(firebaseToken)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to parse Google ID token from CustomCredential", e)
+                            Result.failure(e)
+                        }
+                    } else {
+                        Log.e(TAG, "Unexpected CustomCredential type: ${credential.type}")
+                        Result.failure(Exception("Unexpected CustomCredential type: ${credential.type}"))
+                    }
+                }
                 else -> {
                     Log.e(TAG, "Invalid credential type: ${credential.type}")
                     Result.failure(Exception("Invalid credential type: ${credential.type}"))
@@ -87,7 +116,7 @@ class AndroidAuthService(
             Log.e(TAG, "GetCredentialException: ${e.type} - ${e.message}", e)
             val errorMessage = when {
                 e.message?.contains("No credentials available") == true ->
-                    "No Google account found. Please add a Google account to your device in Settings > Accounts"
+                    "No Google account found. This often happens if the app's SHA-1 fingerprint is missing from Firebase Console. Please check your debug keystore SHA-1."
                 e.message?.contains("Caller has been temporarily blocked") == true ->
                     "Too many failed attempts. Please try again later"
                 e.message?.contains("16") == true || e.message?.contains("SIGN_IN_REQUIRED") == true ->
@@ -125,21 +154,14 @@ class AndroidAuthService(
      * Get the Web Client ID from the Firebase project
      * Replace this with your actual Web Client ID from Firebase Console
      */
+    /**
+     * Get the Web Client ID from the Firebase project
+     */
     private fun getWebClientId(): String {
-        // TODO: Replace with your actual Web Client ID from Firebase Console
-        // You can find this in google-services.json under oauth_client with client_type: 3
-        return context.resources.getIdentifier(
-            "default_web_client_id",
-            "string",
-            context.packageName
-        ).let { resId ->
-            if (resId != 0) {
-                context.getString(resId)
-            } else {
-                throw IllegalStateException(
-                    "Web client ID not found. Make sure google-services.json is properly configured"
-                )
-            }
-        }
+        // Hardcoded Web Client ID to ensure correct resolution
+        // This is the client_type: 3 ID from google-services.json
+        val webClientId = "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com"
+        Log.d(TAG, "Using Web Client ID: $webClientId")
+        return webClientId
     }
 }

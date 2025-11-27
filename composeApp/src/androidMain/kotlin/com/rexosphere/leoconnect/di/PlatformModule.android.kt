@@ -10,7 +10,7 @@ fun androidPlatformModule(context: Context): Module = module {
     single<Context> { context }
     single<AuthService> {
         AndroidAuthService(
-            context = get(),
+            context = context.applicationContext,
             firebaseAuth = get()
         )
     }

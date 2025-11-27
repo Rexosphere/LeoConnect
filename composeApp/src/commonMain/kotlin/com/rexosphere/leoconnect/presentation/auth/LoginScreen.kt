@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -72,6 +73,10 @@ private fun LoginScreenContent(
             verticalArrangement = Arrangement.Center
         ) {
             // App Logo/Title
+            Text(text= "🦁",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold)
             Text(
                 text = "LeoConnect",
                 style = MaterialTheme.typography.displayLarge,
@@ -97,10 +102,6 @@ private fun LoginScreenContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 enabled = !state.isLoading,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                )
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
@@ -114,7 +115,7 @@ private fun LoginScreenContent(
                     ) {
                         // Google icon placeholder - you can use a real icon here
                         Icon(
-                            imageVector = Icons.Default.Warning, // Replace with Google icon
+                            imageVector = Icons.Default.Person, // Replace with Google icon
                             contentDescription = "Google",
                             modifier = Modifier.size(24.dp),
                             tint = Color.Unspecified
