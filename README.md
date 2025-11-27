@@ -1,48 +1,53 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM).
+# LeoConnect 🦁
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+**Uniting Leo Clubs, Amplifying Impact.**
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+LeoConnect is the premier social platform dedicated to Leo Club members worldwide. We believe in the power of connection to drive service and change. By bringing Leos together on a single, intuitive platform, we empower you to share your stories, discover new opportunities, and collaborate on a global scale.
 
-### Build and Run Android Application
+## Screenshots
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+<p float="left">
+  <img src="screenshots/LoginScreen.jpg" width="200" />
+  <img src="screenshots/Feed.jpg" width="200" /> 
+  <img src="screenshots/PostScreen.jpg" width="200" />
+  <img src="screenshots/ClubsScreen.jpg" width="200" />
+</p>
 
-### Build and Run Desktop (JVM) Application
+<p float="left">
+  <img src="screenshots/DistrictInfoScreen.jpg" width="200" />
+  <img src="screenshots/ProfileScreen.jpg" width="200" />
+  <img src="screenshots/ProfileEditScreen.jpg" width="200" />
+  <img src="screenshots/SettingsScreen.jpg" width="200" />
+</p>
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+## Why LeoConnect?
 
-### Build and Run iOS Application
+### 🌍 Connect Across the Island
+Break down geographical barriers. Discover clubs from other districts, follow their activities, and build a network of changemakers from around the world.
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+### 📢 Share Your Journey
+Your service matters. Share updates, photos, and stories from your latest projects. Inspire others and get inspired by the incredible work happening in the Leo community.
+
+### 📅 Never Miss an Event
+Stay in the loop with upcoming events in your district and beyond. Seamless RSVP and event details ensure you're always where the action is.
+
+### 🤝 Engage & Collaborate
+Join the conversation! Comment on posts, discuss ideas, and foster a spirit of collaboration. LeoConnect is your community hub.
+
+### 📱 Seamless Experience
+Enjoy a beautiful, modern experience across all your devices—Android, iOS, and Desktop. LeoConnect goes where you go.
+
+## Features at a Glance
+*   **Social Feed**: A personalized feed of posts from clubs and Leos you follow.
+*   **Club Discovery**: Easily find and explore clubs by district.
+*   **Event Management**: View event details, locations, and track your participation.
+*   **Impact Tracking**: Keep a record of your service contributions (Coming Soon).
+*   **Secure Profile**: Manage your identity and privacy with ease.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Contact
+For questions, support, or feedback, please reach out to the development team at **Rexosphere**.
+
+---
+*Built with ❤️ for the Leo Community*
