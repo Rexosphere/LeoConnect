@@ -217,3 +217,23 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF271E19)
 val surfaceContainerDarkHighContrast = Color(0xFF382E29)
 val surfaceContainerHighDarkHighContrast = Color(0xFF443934)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF50443F)
+
+
+// Modern Uber-inspired Light Theme Colors
+val UberBlack = Color(0xFF000000)
+val UberWhite = Color(0xFFFFFFFF)
+val UberGray50 = Color(0xFFFAFAFA)
+val UberGray100 = Color(0xFFF5F5F5)
+val UberGray200 = Color(0xFFEEEEEE)
+val UberGray300 = Color(0xFFE0E0E0)
+val UberGray400 = Color(0xFFBDBDBD)
+val UberGray600 = Color(0xFF757575)
+val UberGray700 = Color(0xFF616161)
+val UberGray800 = Color(0xFF424242)
+val UberGray900 = Color(0xFF212121)
+val UberGreen = Color(0xFF05C167) // Accent color for success/confirmation
+
+// Modern Uber-inspired Dark Theme Colors
+val DarkBackground = Color(0xFF121212)
+val DarkSurface = Color(0xFF1E1E1E)
+val DarkSurfaceVariant = Color(0xFF2C2C2C)

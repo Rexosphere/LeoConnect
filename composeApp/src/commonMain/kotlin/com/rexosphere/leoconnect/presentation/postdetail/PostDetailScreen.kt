@@ -1,5 +1,7 @@
 package com.rexosphere.leoconnect.presentation.postdetail
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,9 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -27,128 +31,115 @@ import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
 data class PostDetailScreen(val post: Post) : Screen {
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = koinScreenModel<PostDetailScreenModel>()
+        val uiState by screenModel.uiState.collectAsState()
+        var commentText by remember { mutableStateOf("") }
 
         LaunchedEffect(post.postId) {
             screenModel.loadComments(post.postId)
         }
 
-        val uiState by screenModel.uiState.collectAsState()
-        var commentText by remember { mutableStateOf("") }
-
         Scaffold(
             topBar = {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = { Text("Post") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     },
-                    actions = {
-                        IconButton(onClick = { /* TODO: Share */ }) {
-                            Icon(Icons.Default.Share, "Share")
-                        }
-                        IconButton(onClick = { /* TODO: More options */ }) {
-                            Icon(Icons.Default.MoreVert, "More")
-                        }
-                    }
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             },
             bottomBar = {
-                Surface(
-                    shadowElevation = 8.dp,
-                    tonalElevation = 2.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = commentText,
-                            onValueChange = { commentText = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Write a comment...") },
-                            shape = RoundedCornerShape(24.dp),
-                            maxLines = 3
-                        )
-                        IconButton(
-                            onClick = {
-                                if (commentText.isNotBlank()) {
-                                    screenModel.addComment(post.postId, commentText)
-                                    commentText = ""
-                                }
-                            },
-                            enabled = commentText.isNotBlank()
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, "Send")
+                CommentInputBar(
+                    text = commentText,
+                    onTextChange = { commentText = it },
+                    onSendClick = {
+                        if (commentText.isNotBlank()) {
+                            screenModel.addComment(post.postId, commentText.trim())
+                            commentText = ""
                         }
-                    }
-                }
+                    },
+                    isSending = uiState is PostDetailUiState.Loading
+                )
             }
-        ) { padding ->
+        ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                    .padding(innerPadding)
             ) {
-                // Post content
+                // Main Post
                 item {
-                    PostDetailContent(
+                    ThreadsStylePostItem(
                         post = post,
-                        onLikeClick = { screenModel.toggleLike(post.postId) },
-                        onCommentClick = { /* Focus comment field */ },
-                        onShareClick = { /* TODO: Share */ }
+                        onLikeClick = { screenModel.toggleLike(post.postId) }
                     )
                 }
 
-                // Comments header
+                // Comments Header
                 item {
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    Text(
-                        text = "Comments (${post.commentsCount})",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
+                    Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Comments",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (post.commentsCount > 0) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "· ${post.commentsCount}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
 
-                // Comments list
+                // Comments List
                 when (val state = uiState) {
                     is PostDetailUiState.Loading -> {
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(modifier = Modifier.fillMaxWidth().padding(64.dp), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
                         }
                     }
                     is PostDetailUiState.Success -> {
-                        items(state.comments, key = { it.commentId }) { comment ->
-                            CommentItem(
-                                comment = comment,
-                                onLikeClick = { screenModel.toggleCommentLike(comment.commentId) }
-                            )
-                        }
                         if (state.comments.isEmpty()) {
                             item {
-                                Text(
-                                    text = "No comments yet. Be the first to comment!",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(16.dp)
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(64.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No comments yet.\nBe the first to comment!",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        } else {
+                            items(state.comments, key = { it.commentId }) { comment ->
+                                ThreadsStyleCommentItem(
+                                    comment = comment,
+                                    onLikeClick = { screenModel.toggleCommentLike(comment.commentId) }
                                 )
                             }
                         }
@@ -163,156 +154,92 @@ data class PostDetailScreen(val post: Post) : Screen {
                         }
                     }
                 }
+
+                item { Spacer(Modifier.height(80.dp)) } // Extra space for bottom bar
             }
         }
     }
 }
 
 @Composable
-fun PostDetailContent(
+private fun ThreadsStylePostItem(
     post: Post,
-    onLikeClick: () -> Unit,
-    onCommentClick: () -> Unit,
-    onShareClick: () -> Unit
+    onLikeClick: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Author info
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (post.authorLogo != null) {
+        // Top border
+        Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            // Author Row
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 KamelImage(
-                    resource = { asyncPainterResource(data = post.authorLogo) },
-                    contentDescription = "Author Logo",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                    onLoading = { CircularProgressIndicator(modifier = Modifier.size(24.dp)) },
-                    onFailure = { Icon(Icons.Default.Person, contentDescription = null) }
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
+                    resource = asyncPainterResource(post.authorLogo ?: ""),
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(42.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    onLoading = { CircularProgressIndicator(strokeWidth = 2.dp) },
+                    onFailure = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = post.authorName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = post.clubName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                if (post.createdAt.isNotEmpty()) {
-                    Text(
-                        text = formatTimeAgo(post.createdAt),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(post.authorName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(post.clubName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
             }
-        }
 
-        // Content
-        Text(
-            text = post.content,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Image
-        if (post.imageUrl != null) {
-            KamelImage(
-                resource = { asyncPainterResource(data = post.imageUrl) },
-                contentDescription = "Post Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 400.dp),
-                contentScale = ContentScale.Crop,
-                onLoading = { progress ->
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                },
-                onFailure = {
-                    Icon(Icons.Default.Warning, contentDescription = "Error",
-                         tint = MaterialTheme.colorScheme.error)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Stats
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+            // Post Text
             Text(
-                text = "${post.likesCount} likes",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
+                text = post.content,
+                style = MaterialTheme.typography.bodyLarge,
+                lineHeight = 26.sp
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "${post.commentsCount} comments",
-                    style = MaterialTheme.typography.bodyMedium
+
+            // Image
+            post.imageUrl?.let { url ->
+                Spacer(Modifier.height(12.dp))
+                KamelImage(
+                    resource = asyncPainterResource(url),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
                 )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Like Button + Count
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onLikeClick() }
+            ) {
+                Icon(
+                    imageVector = if (post.isLikedByUser) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Like",
+                    tint = if (post.isLikedByUser) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "${post.sharesCount} shares",
-                    style = MaterialTheme.typography.bodyMedium
+                    text = if (post.likesCount > 0) "${post.likesCount}" else "Like",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (post.isLikedByUser) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Divider()
-
-        // Action buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            ActionButton(
-                icon = if (post.isLikedByUser) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
-                text = "Like",
-                tint = if (post.isLikedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                onClick = onLikeClick
-            )
-            ActionButton(
-                icon = Icons.Default.ModeComment,
-                text = "Comment",
-                onClick = onCommentClick
-            )
-            ActionButton(
-                icon = Icons.Default.Share,
-                text = "Share",
-                onClick = onShareClick
-            )
-        }
+        // Bottom border
+        Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
     }
 }
 
 @Composable
-fun CommentItem(
+private fun ThreadsStyleCommentItem(
     comment: Comment,
     onLikeClick: () -> Unit
 ) {
@@ -321,75 +248,51 @@ fun CommentItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        if (comment.authorPhotoUrl != null) {
-            KamelImage(
-                resource = { asyncPainterResource(data = comment.authorPhotoUrl) },
-                contentDescription = "Commenter Photo",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                onLoading = { CircularProgressIndicator(modifier = Modifier.size(18.dp)) },
-                onFailure = { Icon(Icons.Default.Person, contentDescription = null) }
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
+        KamelImage(
+            resource = asyncPainterResource(comment.authorPhotoUrl ?: ""),
+            contentDescription = null,
+            modifier = Modifier.size(36.dp).clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            onFailure = { Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) }
+        )
+
+        Spacer(Modifier.width(12.dp))
+
         Column(modifier = Modifier.weight(1f)) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = comment.authorName,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = comment.content,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier.padding(top = 4.dp, start = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = comment.authorName,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.width(8.dp))
                 Text(
                     text = formatTimeAgo(comment.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(
-                    onClick = onLikeClick,
-                    contentPadding = PaddingValues(0.dp)
-                ) {
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                text = comment.content,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(Modifier.height(6.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                TextButton(onClick = onLikeClick, contentPadding = PaddingValues(0.dp)) {
                     Text(
-                        text = if (comment.isLikedByUser) "Liked" else "Like",
+                        text = if (comment.likesCount > 0) "${comment.likesCount} likes" else "Like",
                         style = MaterialTheme.typography.bodySmall,
-                        fontWeight = if (comment.isLikedByUser) FontWeight.Bold else FontWeight.Normal
+                        color = if (comment.isLikedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (comment.likesCount > 0) {
-                        Text(
-                            text = " · ${comment.likesCount}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
                 }
-                TextButton(
-                    onClick = { /* TODO: Reply */ },
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        text = "Reply",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                TextButton(onClick = { /* Reply */ }, contentPadding = PaddingValues(0.dp)) {
+                    Text("Reply", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -397,30 +300,56 @@ fun CommentItem(
 }
 
 @Composable
-fun ActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+private fun CommentInputBar(
     text: String,
-    tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-    onClick: () -> Unit
+    onTextChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    isSending: Boolean
 ) {
-    TextButton(onClick = onClick) {
-        Icon(
-            imageVector = icon,
-            contentDescription = text,
-            tint = tint,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, color = tint)
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = onTextChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Add a comment...") },
+                shape = RoundedCornerShape(24.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.3f)
+                ),
+                singleLine = true
+            )
+
+            Spacer(Modifier.width(12.dp))
+
+            IconButton(
+                onClick = onSendClick,
+                enabled = text.isNotBlank() && !isSending
+            ) {
+                if (isSending) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        tint = if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }
 
-fun formatTimeAgo(timestamp: String): String {
-    // Simplified time ago formatter
-    // In real app, use proper datetime library
-    return if (timestamp.isNotEmpty()) {
-        "Just now" // Placeholder
-    } else {
-        ""
-    }
+private fun formatTimeAgo(timestamp: String): String {
+    // Replace with real time formatting (e.g., TimeAgo library)
+    return "2h ago"
 }

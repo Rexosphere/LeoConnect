@@ -248,12 +248,106 @@ val unspecified_scheme = ColorFamily(
     Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
 )
 
+// Modern Uber-inspired Light Color Scheme
+private val UberLightColorScheme =
+    lightColorScheme(
+        // Primary colors - Black for buttons and primary actions
+        primary = UberBlack,
+        onPrimary = UberWhite,
+        primaryContainer = UberGray900,
+        onPrimaryContainer = UberWhite,
+        // Secondary colors - Gray tones
+        secondary = UberGray700,
+        onSecondary = UberWhite,
+        secondaryContainer = UberGray200,
+        onSecondaryContainer = UberGray900,
+        // Tertiary colors - Accent green
+        tertiary = UberGreen,
+        onTertiary = UberWhite,
+        tertiaryContainer = Color(0xFFD4F4E7),
+        onTertiaryContainer = Color(0xFF003822),
+        // Background and Surface - Clean whites
+        background = UberWhite,
+        onBackground = UberBlack,
+        surface = UberWhite,
+        onSurface = UberBlack,
+        surfaceVariant = UberGray100,
+        onSurfaceVariant = UberGray700,
+        // Surface containers
+        surfaceContainer = UberGray50,
+        surfaceContainerHigh = UberGray100,
+        surfaceContainerHighest = UberGray200,
+        surfaceContainerLow = UberGray50,
+        surfaceContainerLowest = UberWhite,
+        // Outline colors
+        outline = UberGray300,
+        outlineVariant = UberGray200,
+        // Error colors
+        error = Color(0xFFD32F2F),
+        onError = UberWhite,
+        errorContainer = Color(0xFFFFCDD2),
+        onErrorContainer = Color(0xFF5F2120),
+        // Inverse colors
+        inverseSurface = UberGray900,
+        inverseOnSurface = UberWhite,
+        inversePrimary = UberGray300,
+        // Scrim
+        scrim = Color(0x80000000),
+    )
+
+// Modern Dark Color Scheme
+private val UberDarkColorScheme =
+    darkColorScheme(
+        // Primary colors - White for buttons in dark mode
+        primary = UberWhite,
+        onPrimary = UberBlack,
+        primaryContainer = UberGray200,
+        onPrimaryContainer = UberBlack,
+        // Secondary colors
+        secondary = UberGray300,
+        onSecondary = UberBlack,
+        secondaryContainer = UberGray700,
+        onSecondaryContainer = UberGray100,
+        // Tertiary colors - Accent green
+        tertiary = UberGreen,
+        onTertiary = UberBlack,
+        tertiaryContainer = Color(0xFF004D33),
+        onTertiaryContainer = Color(0xFFD4F4E7),
+        // Background and Surface - Dark tones
+        background = DarkBackground,
+        onBackground = UberWhite,
+        surface = DarkSurface,
+        onSurface = UberWhite,
+        surfaceVariant = DarkSurfaceVariant,
+        onSurfaceVariant = UberGray400,
+        // Surface containers
+        surfaceContainer = DarkSurface,
+        surfaceContainerHigh = DarkSurfaceVariant,
+        surfaceContainerHighest = Color(0xFF353535),
+        surfaceContainerLow = Color(0xFF1A1A1A),
+        surfaceContainerLowest = DarkBackground,
+        // Outline colors
+        outline = UberGray600,
+        outlineVariant = UberGray700,
+        // Error colors
+        error = Color(0xFFEF5350),
+        onError = UberBlack,
+        errorContainer = Color(0xFF8C1D18),
+        onErrorContainer = Color(0xFFFFCDD2),
+        // Inverse colors
+        inverseSurface = UberGray100,
+        inverseOnSurface = UberBlack,
+        inversePrimary = UberGray700,
+        // Scrim
+        scrim = Color(0xCC000000),
+    )
+
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable() () -> Unit
 ) {
-  val colorScheme = if (darkTheme) darkScheme else lightScheme
+  val colorScheme = if (darkTheme) UberDarkColorScheme else UberLightColorScheme
 
   MaterialTheme(
     colorScheme = colorScheme,

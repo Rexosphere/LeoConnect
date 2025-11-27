@@ -1,40 +1,29 @@
 package com.rexosphere.leoconnect.presentation.auth
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.presentation.MainScreen
+import org.jetbrains.compose.resources.painterResource
+import leoconnect.composeapp.generated.resources.Res
+import leoconnect.composeapp.generated.resources.ic_google_logo
+import org.jetbrains.compose.resources.*
 
 class LoginScreen : Screen {
     @Composable
@@ -43,10 +32,10 @@ class LoginScreen : Screen {
         val state by screenModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
-        // Navigate to home if signed in successfully
-        if (state.isSignedIn) {
-            navigator.replace(MainScreen())
-            return
+        LaunchedEffect(state.isSignedIn) {
+            if (state.isSignedIn) {
+                navigator.replace(MainScreen())
+            }
         }
 
         LoginScreenContent(
@@ -61,70 +50,86 @@ private fun LoginScreenContent(
     state: LoginUiState,
     onSignInClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // App Logo/Title
-            Text(text= "🦁",
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold)
+            // App Icon + Name
             Text(
-                text = "LeoConnect",
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+                text = "\uD83E\uDD81",
+                fontSize = 82.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "LeoConnect",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.5.sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Connect with Leo Clubs worldwide",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                lineHeight = 28.sp
             )
 
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
-            // Sign In Button
+            // Google Sign-In Button – Official Style (Multiplatform-safe)
             Button(
                 onClick = onSignInClick,
+                enabled = !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = !state.isLoading,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSystemInDarkTheme()) Color(0xFF4285F4) else Color(0xFFFFFFFF),
+                    contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                ),
+                border = if (!isSystemInDarkTheme()) {
+                    ButtonDefaults.outlinedButtonBorder(enabled = true)
+                } else null
             ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.primary
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Google Logo – loaded via Compose Resources (multiplatform)
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_google_logo),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
                     )
-                } else {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        // Google icon placeholder - you can use a real icon here
-                        Icon(
-                            imageVector = Icons.Default.Person, // Replace with Google icon
-                            contentDescription = "Google",
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.Unspecified
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Sign in with Google",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Medium
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        text = if (state.isLoading) "Signing in..." else "Continue with Google",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    if (state.isLoading) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.5.dp,
+                            color = LocalContentColor.current
                         )
                     }
                 }
@@ -132,24 +137,24 @@ private fun LoginScreenContent(
 
             // Error message
             if (state.error != null) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = state.error,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = state.error ?: "",
                     color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
-            // Additional info
             Text(
-                text = "By signing in, you agree to our Terms of Service and Privacy Policy",
+                text = "By continuing, you agree to our Terms of Service and Privacy Policy",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                lineHeight = 18.sp,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
     }

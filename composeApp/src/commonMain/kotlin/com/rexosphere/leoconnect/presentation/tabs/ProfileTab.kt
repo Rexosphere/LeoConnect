@@ -1,81 +1,53 @@
 package com.rexosphere.leoconnect.presentation.tabs
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.rexosphere.leoconnect.presentation.components.ImpactTracker
 import com.rexosphere.leoconnect.presentation.settings.SettingsScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import org.jetbrains.compose.resources.painterResource
+import leoconnect.composeapp.generated.resources.Res
+import leoconnect.composeapp.generated.resources.ic_leo_badge
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import cafe.adriel.voyager.navigator.Navigator
+import com.rexosphere.leoconnect.domain.model.UserProfile
 
 object ProfileTab : Tab {
-
     override val options: TabOptions
-        @Composable
-        get() {
-            val title = "Profile"
+        @Composable get() {
             val icon = rememberVectorPainter(Icons.Default.Person)
-
-            return remember {
-                TabOptions(
-                    index = 2u,
-                    title = title,
-                    icon = icon
-                )
-            }
+            return TabOptions(
+                index = 4u,
+                title = "Profile",
+                icon = icon
+            )
         }
 
-    @Composable
-    override fun Content() {
+    @Composable override fun Content() {
         Navigator(ProfileScreen())
     }
 }
@@ -87,124 +59,77 @@ class ProfileScreen : Screen {
         val state by screenModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Header with Settings Icon
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(onClick = { navigator.push(SettingsScreen()) }) {
-                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+        when (val uiState = state) {
+            is ProfileUiState.Loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-
-            when (val uiState = state) {
-                is ProfileUiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is ProfileUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(16.dp))
+            is ProfileUiState.Error -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.Warning, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(16.dp))
+                        Text(uiState.message, color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(16.dp))
                         Button(onClick = { screenModel.loadProfile() }) {
                             Text("Retry")
                         }
                     }
                 }
-                is ProfileUiState.Success -> {
-                    val profile = uiState.profile
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Profile Image
-                        if (profile.photoURL != null) {
-                            KamelImage(
-                                resource = { asyncPainterResource(data = profile.photoURL) },
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop,
-                                onLoading = { CircularProgressIndicator() },
-                                onFailure = { Icon(Icons.Default.Person, contentDescription = null) }
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape)
-                            )
-                        }
+            }
+            is ProfileUiState.Success -> {
+                val profile = uiState.profile
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    item { ProfileHeader(profile, onSettingsClick = { navigator.push(SettingsScreen()) }) }
+                    item { Spacer(Modifier.height(32.dp)) }
+                    item { ImpactTracker() }
+                    item { Spacer(Modifier.height(32.dp)) }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = profile.displayName,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = profile.email,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Badges
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (!profile.leoId.isNullOrEmpty()) {
-                                Badge(text = "Leo ID: ${profile.leoId}", color = MaterialTheme.colorScheme.primaryContainer)
-                            }
-                            if (profile.isWebmaster) {
-                                Badge(text = "✏️ Webmaster", color = MaterialTheme.colorScheme.tertiaryContainer)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Impact Tracker
-                        ImpactTracker()
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Menu Items
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            if (profile.leoId.isNullOrEmpty()) {
-                                MenuItem(
-                                    icon = Icons.Default.Verified,
-                                    title = "Verify Leo ID",
-                                    subtitle = "Get verified as a Leo member",
-                                    onClick = { /* TODO */ }
-                                )
-                            }
-
-                            MenuItem(
-                                icon = Icons.Default.DateRange,
-                                title = "My Leo Journey",
-                                subtitle = "View your Leo timeline",
-                                onClick = { /* TODO */ }
-                            )
-
-                            MenuItem(
-                                icon = Icons.Default.Favorite,
-                                title = "Following",
-                                subtitle = "${profile.followingClubs.size} clubs", // Assuming followingClubs is added to UserProfile
+                    // Menu Items
+                    if (profile.leoId.isNullOrEmpty()) {
+                        item {
+                            ProfileMenuItem(
+                                icon = Icons.Default.Verified,
+                                title = "Verify Leo ID",
+                                subtitle = "Prove you're a real Leo member",
+                                badge = "New",
                                 onClick = { /* TODO */ }
                             )
                         }
-                        
-                        Spacer(modifier = Modifier.height(32.dp))
                     }
+
+                    item {
+                        ProfileMenuItem(
+                            icon = Icons.Default.DateRange,
+                            title = "My Leo Journey",
+                            subtitle = "Your membership history & milestones",
+                            onClick = { /* TODO */ }
+                        )
+                    }
+
+                    item {
+                        ProfileMenuItem(
+                            icon = Icons.Default.FavoriteBorder,
+                            title = "Following",
+                            subtitle = "${profile.followingClubs.size} clubs you're following",
+                            onClick = { /* TODO */ }
+                        )
+                    }
+
+                    item {
+                        ProfileMenuItem(
+                            icon = Icons.Default.Share,
+                            title = "Invite Friends",
+                            subtitle = "Bring more Leos to LeoConnect",
+                            onClick = { /* TODO */ }
+                        )
+                    }
+
+                    item { Spacer(Modifier.height(50.dp)) }
                 }
             }
         }
@@ -212,63 +137,172 @@ class ProfileScreen : Screen {
 }
 
 @Composable
-fun Badge(text: String, color: androidx.compose.ui.graphics.Color) {
-    androidx.compose.material3.Surface(
-        color = color,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-fun MenuItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
+private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Top-right Settings
+        Box(modifier = Modifier.fillMaxWidth()) {
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.Settings, contentDescription = "Settings")
             }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+        ) {
+            // Profile Picture
+            if (profile.photoURL != null) {
+                KamelImage(
+                    resource = asyncPainterResource(profile.photoURL),
+                    contentDescription = "Profile picture",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    onLoading = { CircularProgressIndicator(strokeWidth = 3.dp) },
+                    onFailure = {
+                        Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
+                            Icon(Icons.Default.Person, null, modifier = Modifier.size(50.dp).align(Alignment.Center))
+                        }
+                    }
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Person, null, modifier = Modifier.size(50.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Spacer(Modifier.height(20.dp))
+
+            // Name + Verified Badge
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = profile.displayName,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp
+                    )
+                )
+                if (!profile.leoId.isNullOrEmpty()) {
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.Verified,
+                        contentDescription = "Verified Leo",
+                        tint = Color(0xFF1DA1F2),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = profile.email,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Spacer(Modifier.height(12.dp))
+
+            // Leo ID Badge
+            if (!profile.leoId.isNullOrEmpty()) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_leo_badge), // Optional custom badge
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Leo ID: ${profile.leoId}",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            if (profile.isWebmaster) {
+                Spacer(Modifier.height(8.dp))
+                Surface(color = Color(0xFFFF6B6B).copy(alpha = 0.15f), shape = RoundedCornerShape(20.dp)) {
+                    Text(
+                        text = "Webmaster",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        color = Color(0xFFFF6B6B),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }
 
+@Composable
+private fun ProfileMenuItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    badge: String? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+        }
 
+        Spacer(Modifier.width(20.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                badge?.let {
+                    Spacer(Modifier.width(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = it,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
