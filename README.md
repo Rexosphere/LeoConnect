@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/app_icon.png" width="200" alt="LeoConnect App Icon"/>
+</p>
+
 # LeoConnect 🦁
 
 **Uniting Leo Clubs, Amplifying Impact.**
