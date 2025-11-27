@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "124058547668",
+    "project_id": "leoconnect-d6d32",
+    "storage_bucket": "leoconnect-d6d32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:124058547668:android:06577fd1fa3d8e13835241",
+        "android_client_info": {
+          "package_name": "com.rexosphere.leoconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "124058547668-a1c3cp20td4fo35f8vl7ebcgt52795ts.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rexosphere.leoconnect",
+            "certificate_hash": "9b8b4f50f7829b630e18e4bf8fe63147752c2652"
+          }
+        },
+        {
+          "client_id": "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdgHZLMvl6766ih1_VtnOoHAIMMYjZeeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

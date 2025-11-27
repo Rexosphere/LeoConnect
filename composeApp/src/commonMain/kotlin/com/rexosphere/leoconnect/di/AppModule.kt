@@ -1,0 +1,51 @@
+package com.rexosphere.leoconnect.di
+
+import com.rexosphere.leoconnect.data.repository.LeoRepositoryImpl
+import com.rexosphere.leoconnect.data.source.remote.KtorRemoteDataSource
+import com.rexosphere.leoconnect.domain.repository.LeoRepository
+import com.rexosphere.leoconnect.domain.service.AuthService
+import com.rexosphere.leoconnect.presentation.auth.LoginScreenModel
+import com.rexosphere.leoconnect.presentation.home.HomeScreenModel
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
+
+val commonModule = module {
+    // Firebase Auth
+    single { Firebase.auth }
+
+    // HttpClient with JSON support
+    single {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                    isLenient = true
+                })
+            }
+        }
+    }
+
+    // Data sources and repository
+    single {
+        KtorRemoteDataSource(
+            client = get(),
+            getToken = { get<AuthService>().getCurrentToken() }
+        )
+    }
+    single<LeoRepository> { LeoRepositoryImpl(get(), get()) }
+
+    // ViewModels
+    factory { LoginScreenModel(get()) }
+    factory { HomeScreenModel(get()) }
+}
+
+// Platform-specific modules will be added via expect/actual
+expect val platformModule: Module
