@@ -3,6 +3,7 @@ package com.rexosphere.leoconnect.presentation.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,11 +36,13 @@ import io.kamel.image.asyncPainterResource
 fun PostCard(
     post: Post,
     onLikeClick: () -> Unit,
+    onPostClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth().padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        onClick = onPostClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header
@@ -73,7 +76,7 @@ fun PostCard(
                 KamelImage(
                     resource = { asyncPainterResource(data = post.imageUrl) },
                     contentDescription = "Post Image",
-                    modifier = Modifier.fillMaxWidth().height(200.dp).clip(MaterialTheme.shapes.medium),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(MaterialTheme.shapes.medium),
                     contentScale = ContentScale.Crop,
                     onLoading = { progress -> CircularProgressIndicator(progress) },
                     onFailure = { exception -> 

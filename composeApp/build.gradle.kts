@@ -81,6 +81,7 @@ kotlin {
 
             // Kamel
             implementation(libs.kamel.image)
+            implementation(libs.kamel.image.default)
 
             // Firebase
             implementation(libs.firebase.auth)

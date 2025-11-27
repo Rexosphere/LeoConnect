@@ -41,6 +41,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 
 kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamel" }
+kamel-image-default = { module = "media.kamel:kamel-image-default", version.ref = "kamel" }
 
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "gitlive-firebase" }
 firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "gitlive-firebase" }

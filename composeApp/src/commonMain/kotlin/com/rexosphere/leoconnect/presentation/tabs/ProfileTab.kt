@@ -35,8 +35,10 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
@@ -74,6 +76,13 @@ object ProfileTab : Tab {
 
     @Composable
     override fun Content() {
+        Navigator(ProfileScreen())
+    }
+}
+
+class ProfileScreen : Screen {
+    @Composable
+    override fun Content() {
         val screenModel = koinScreenModel<ProfileScreenModel>()
         val state by screenModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
@@ -86,7 +95,7 @@ object ProfileTab : Tab {
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = { navigator.parent?.push(SettingsScreen()) }) {
+                IconButton(onClick = { navigator.push(SettingsScreen()) }) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
                 }
             }

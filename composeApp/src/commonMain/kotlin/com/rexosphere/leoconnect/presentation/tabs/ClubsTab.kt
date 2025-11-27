@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.rexosphere.leoconnect.domain.model.Club
@@ -50,6 +52,13 @@ object ClubsTab : Tab {
             }
         }
 
+    @Composable
+    override fun Content() {
+        Navigator(ClubsScreen())
+    }
+}
+
+class ClubsScreen : Screen {
     @Composable
     override fun Content() {
         val screenModel = koinScreenModel<ClubsScreenModel>()
@@ -104,10 +113,11 @@ object ClubsTab : Tab {
 }
 
 @Composable
-fun ClubCard(club: Club) {
+fun ClubCard(club: Club, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

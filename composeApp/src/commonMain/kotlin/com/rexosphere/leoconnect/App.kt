@@ -1,10 +1,15 @@
 package com.rexosphere.leoconnect
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import cafe.adriel.voyager.navigator.Navigator
 import com.rexosphere.leoconnect.presentation.auth.LoginScreen
 import com.rexosphere.leoconnect.ui.theme.AppTheme
+import io.kamel.core.config.KamelConfig
+import io.kamel.core.config.takeFrom
+import io.kamel.image.config.Default
+import io.kamel.image.config.LocalKamelConfig
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -14,7 +19,16 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun App() {
+    val kamelConfig = remember {
+        KamelConfig {
+            // Use default configuration
+            takeFrom(KamelConfig.Default)
+        }
+    }
+
     AppTheme {
-        Navigator(LoginScreen())
+        CompositionLocalProvider(LocalKamelConfig provides kamelConfig) {
+            Navigator(LoginScreen())
+        }
     }
 }
