@@ -5,6 +5,10 @@
 # LeoConnect 🦁
 
 **Uniting Leo Clubs, Amplifying Impact.**
+<br/>
+<a href="https://github.com/Rexosphere/LeoConnect/releases/latest">
+  <img src="https://img.shields.io/badge/Download-App-blue?style=for-the-badge&logo=android" alt="Download App" height="40"/>
+</a>
 
 LeoConnect is the premier social platform dedicated to Leo Club members worldwide. We believe in the power of connection to drive service and change. By bringing Leos together on a single, intuitive platform, we empower you to share your stories, discover new opportunities, and collaborate on a global scale.
 
