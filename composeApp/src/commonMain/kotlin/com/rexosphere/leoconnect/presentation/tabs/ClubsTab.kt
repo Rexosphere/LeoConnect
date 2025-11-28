@@ -1,59 +1,48 @@
 package com.rexosphere.leoconnect.presentation.tabs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.rexosphere.leoconnect.domain.model.Club
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 
 object ClubsTab : Tab {
-
     override val options: TabOptions
-        @Composable
-        get() {
-            val title = "Clubs"
-            val icon = rememberVectorPainter(Icons.Default.List)
-
-            return remember {
-                TabOptions(
-                    index = 1u,
-                    title = title,
-                    icon = icon
-                )
-            }
+        @Composable get() {
+            val icon = rememberVectorPainter(Icons.Default.Groups)
+            return TabOptions(
+                index = 1u,
+                title = "Clubs",
+                icon = icon
+            )
         }
 
-    @Composable
-    override fun Content() {
+    @Composable override fun Content() {
         Navigator(ClubsScreen())
     }
 }
@@ -64,46 +53,88 @@ class ClubsScreen : Screen {
         val screenModel = koinScreenModel<ClubsScreenModel>()
         val state by screenModel.uiState.collectAsState()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            when (val uiState = state) {
-                is ClubsUiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+        when (val uiState = state) {
+            is ClubsUiState.Loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            is ClubsUiState.Error -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.Warning, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(16.dp))
+                        Text(uiState.message, color = MaterialTheme.colorScheme.error)
                     }
                 }
-                is ClubsUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-                is ClubsUiState.Success -> {
-                    // Districts Filter
-                    LazyRow(
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(uiState.districts) { district ->
-                            FilterChip(
-                                selected = district == uiState.selectedDistrict,
-                                onClick = { screenModel.selectDistrict(district) },
-                                label = { Text(district) }
-                            )
+            }
+            is ClubsUiState.Success -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    // District Filter Chips
+                    item {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
+                                FilterChip(
+                                    selected = uiState.selectedDistrict == null,
+                                    onClick = { screenModel.selectDistrict(null) },
+                                    label = { Text("All Districts") },
+                                    leadingIcon = if (uiState.selectedDistrict == null) {
+                                        { Icon(Icons.Default.Done, null, modifier = Modifier.size(18.dp)) }
+                                    } else null
+                                )
+                            }
+                            items(uiState.districts) { district ->
+                                FilterChip(
+                                    selected = district == uiState.selectedDistrict,
+                                    onClick = { screenModel.selectDistrict(district) },
+                                    label = { Text(district) }
+                                )
+                            }
                         }
                     }
 
                     // Clubs List
                     if (uiState.clubs.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No clubs found in this district")
+                        item {
+                            Box(
+                                modifier = Modifier.fillParentMaxHeight(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        Icons.Default.SearchOff,
+                                        null,
+                                        modifier = Modifier.size(80.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                    Spacer(Modifier.height(24.dp))
+                                    Text(
+                                        text = if (uiState.selectedDistrict == null)
+                                            "No clubs yet" else "No clubs in ${uiState.selectedDistrict}",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Be the first to create one!",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    )
+                                }
+                            }
                         }
                     } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(uiState.clubs) { club ->
-                                ClubCard(club)
-                            }
+                        items(uiState.clubs, key = { it.id }) { club ->
+                            ThreadsStyleClubItem(club = club)
+                            Divider(
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                thickness = 1.dp
+                            )
                         }
                     }
                 }
@@ -113,30 +144,103 @@ class ClubsScreen : Screen {
 }
 
 @Composable
-fun ClubCard(club: Club, onClick: () -> Unit = {}) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = onClick
+private fun ThreadsStyleClubItem(club: Club) {
+    val navigator = LocalNavigator.currentOrThrow
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navigator.push(com.rexosphere.leoconnect.presentation.clubdetail.ClubDetailScreen(club)) }
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        // Club Logo
+        if (club.logoUrl != null) {
+            KamelImage(
+                resource = asyncPainterResource(club.logoUrl),
+                contentDescription = "Club logo",
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+                onLoading = {
+                    Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape))
+                },
+                onFailure = {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Groups, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Groups, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        Spacer(Modifier.width(16.dp))
+
+        // Club Info
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = club.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp
+                )
             )
             Text(
                 text = club.district,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
-            if (club.description != null) {
+            if (!club.description.isNullOrBlank()) {
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = club.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Stats
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.People, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "${club.membersCount} members",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.FavoriteBorder, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "${club.followersCount} followers",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
+
+        // Follow Button (optional)
+        // OutlinedButton(onClick = { }, modifier = Modifier.height(36.dp)) {
+        //     Text("Follow")
+        // }
     }
 }

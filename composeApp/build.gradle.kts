@@ -143,6 +143,11 @@ configurations.all {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+
+    // Firebase dependencies for Android
+    "implementation"(platform(libs.firebase.bom))
+    "implementation"(libs.firebase.auth.android)
+    "implementation"(libs.firebase.common.android)
 }
 
 compose.desktop {

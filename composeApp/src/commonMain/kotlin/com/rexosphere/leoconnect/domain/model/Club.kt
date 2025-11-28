@@ -13,12 +13,17 @@ data class Club(
     val coverImageUrl: String? = null,
     val membersCount: Int = 0,
     val followersCount: Int = 0,
+    val postsCount: Int? = null,
     val isFollowing: Boolean = false,
+    val isOfficial: Boolean? = null,
+    val isUserAdmin: Boolean? = null,
     val address: String? = null,
     val email: String? = null,
     val phone: String? = null,
     val socialLinks: SocialLinks? = null
-)
+) {
+    val id: String get() = clubId
+}
 
 @Serializable
 data class SocialLinks(

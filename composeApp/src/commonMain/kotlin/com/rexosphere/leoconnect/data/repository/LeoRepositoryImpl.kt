@@ -127,4 +127,49 @@ class LeoRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getComments(postId: String): Result<List<com.rexosphere.leoconnect.domain.model.Comment>> {
+        return try {
+            val response = remoteDataSource.getComments(postId)
+            Result.success(response.comments)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun addComment(postId: String, content: String): Result<com.rexosphere.leoconnect.domain.model.Comment> {
+        return try {
+            val response = remoteDataSource.addComment(postId, content)
+            Result.success(response.comment)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getClubPosts(clubId: String): Result<List<Post>> {
+        return try {
+            val posts = remoteDataSource.getClubPosts(clubId)
+            Result.success(posts)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserProfileById(userId: String): Result<UserProfile> {
+        return try {
+            val profile = remoteDataSource.getUserProfileById(userId)
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserPosts(userId: String): Result<List<Post>> {
+        return try {
+            val posts = remoteDataSource.getUserPosts(userId)
+            Result.success(posts)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

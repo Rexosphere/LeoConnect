@@ -23,6 +23,7 @@ import com.rexosphere.leoconnect.presentation.components.PostCard
 import com.rexosphere.leoconnect.presentation.components.EmptyState
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
 import com.rexosphere.leoconnect.presentation.search.SearchScreen
+import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
 
 class HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +74,8 @@ class HomeScreen : Screen {
                                     PostCard(
                                         post = post,
                                         onLikeClick = { screenModel.likePost(post.postId) },
-                                        onPostClick = { navigator.push(PostDetailScreen(post)) }
+                                        onPostClick = { navigator.push(PostDetailScreen(post)) },
+                                        onUserClick = { userId -> navigator.push(UserProfileScreen(userId)) }
                                     )
                                 }
                             }

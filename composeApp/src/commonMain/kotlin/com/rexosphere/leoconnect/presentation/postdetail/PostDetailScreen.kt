@@ -27,6 +27,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Comment
 import com.rexosphere.leoconnect.domain.model.Post
+import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -39,6 +40,7 @@ data class PostDetailScreen(val post: Post) : Screen {
         val screenModel = koinScreenModel<PostDetailScreenModel>()
         val uiState by screenModel.uiState.collectAsState()
         var commentText by remember { mutableStateOf("") }
+        var currentPost by remember { mutableStateOf(post) }
 
         LaunchedEffect(post.postId) {
             screenModel.loadComments(post.postId)
@@ -81,8 +83,15 @@ data class PostDetailScreen(val post: Post) : Screen {
                 // Main Post
                 item {
                     ThreadsStylePostItem(
-                        post = post,
-                        onLikeClick = { screenModel.toggleLike(post.postId) }
+                        post = currentPost,
+                        onLikeClick = {
+                            screenModel.toggleLike(currentPost.postId)
+                            currentPost = currentPost.copy(
+                                isLikedByUser = !currentPost.isLikedByUser,
+                                likesCount = if (currentPost.isLikedByUser) currentPost.likesCount - 1 else currentPost.likesCount + 1
+                            )
+                        },
+                        onUserClick = { userId -> navigator.push(UserProfileScreen(userId)) }
                     )
                 }
 
@@ -139,7 +148,8 @@ data class PostDetailScreen(val post: Post) : Screen {
                             items(state.comments, key = { it.commentId }) { comment ->
                                 ThreadsStyleCommentItem(
                                     comment = comment,
-                                    onLikeClick = { screenModel.toggleCommentLike(comment.commentId) }
+                                    onLikeClick = { screenModel.toggleCommentLike(comment.commentId) },
+                                    onUserClick = { userId -> navigator.push(UserProfileScreen(userId)) }
                                 )
                             }
                         }
@@ -164,7 +174,8 @@ data class PostDetailScreen(val post: Post) : Screen {
 @Composable
 private fun ThreadsStylePostItem(
     post: Post,
-    onLikeClick: () -> Unit
+    onLikeClick: () -> Unit,
+    onUserClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Top border
@@ -172,7 +183,10 @@ private fun ThreadsStylePostItem(
 
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             // Author Row
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onUserClick(post.authorId) }
+            ) {
                 KamelImage(
                     resource = asyncPainterResource(post.authorLogo ?: ""),
                     contentDescription = null,
@@ -241,7 +255,8 @@ private fun ThreadsStylePostItem(
 @Composable
 private fun ThreadsStyleCommentItem(
     comment: Comment,
-    onLikeClick: () -> Unit
+    onLikeClick: () -> Unit,
+    onUserClick: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -251,7 +266,10 @@ private fun ThreadsStyleCommentItem(
         KamelImage(
             resource = asyncPainterResource(comment.authorPhotoUrl ?: ""),
             contentDescription = null,
-            modifier = Modifier.size(36.dp).clip(CircleShape),
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable { onUserClick(comment.userId) },
             contentScale = ContentScale.Crop,
             onFailure = { Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) }
         )
@@ -259,7 +277,10 @@ private fun ThreadsStyleCommentItem(
         Spacer(Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onUserClick(comment.userId) }
+            ) {
                 Text(
                     text = comment.authorName,
                     style = MaterialTheme.typography.labelLarge,

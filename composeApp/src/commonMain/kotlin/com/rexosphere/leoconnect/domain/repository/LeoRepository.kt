@@ -59,5 +59,33 @@ interface LeoRepository {
     /**
      * Update user profile
      */
+    /**
+     * Update user profile
+     */
     suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): Result<UserProfile>
+
+    /**
+     * Get comments for a post
+     */
+    suspend fun getComments(postId: String): Result<List<com.rexosphere.leoconnect.domain.model.Comment>>
+
+    /**
+     * Add a comment to a post
+     */
+    suspend fun addComment(postId: String, content: String): Result<com.rexosphere.leoconnect.domain.model.Comment>
+
+    /**
+     * Get posts for a specific club
+     */
+    suspend fun getClubPosts(clubId: String): Result<List<Post>>
+
+    /**
+     * Get user profile by ID
+     */
+    suspend fun getUserProfileById(userId: String): Result<UserProfile>
+
+    /**
+     * Get posts for a specific user
+     */
+    suspend fun getUserPosts(userId: String): Result<List<Post>>
 }

@@ -11,62 +11,67 @@ sealed class PostDetailUiState {
     data class Error(val message: String) : PostDetailUiState()
 }
 
-class PostDetailScreenModel : StateScreenModel<PostDetailUiState>(PostDetailUiState.Loading) {
+class PostDetailScreenModel(
+    private val repository: com.rexosphere.leoconnect.domain.repository.LeoRepository
+) : StateScreenModel<PostDetailUiState>(PostDetailUiState.Loading) {
     val uiState = mutableState
 
     fun loadComments(postId: String) {
         screenModelScope.launch {
-            // TODO: Load comments from repository
-            // For now, use mock data
-            val mockComments = listOf(
-                Comment(
-                    commentId = "1",
-                    postId = postId,
-                    userId = "user1",
-                    authorName = "John Doe",
-                    authorPhotoUrl = null,
-                    content = "Great post! Thanks for sharing.",
-                    createdAt = "2024-01-15T10:30:00Z",
-                    likesCount = 5,
-                    isLikedByUser = false
-                ),
-                Comment(
-                    commentId = "2",
-                    postId = postId,
-                    userId = "user2",
-                    authorName = "Jane Smith",
-                    authorPhotoUrl = null,
-                    content = "This is amazing! Keep up the good work.",
-                    createdAt = "2024-01-15T11:00:00Z",
-                    likesCount = 3,
-                    isLikedByUser = true
-                )
-            )
-            mutableState.value = PostDetailUiState.Success(mockComments)
+            mutableState.value = PostDetailUiState.Loading
+            repository.getComments(postId)
+                .onSuccess { comments ->
+                    mutableState.value = PostDetailUiState.Success(comments)
+                }
+                .onFailure { e ->
+                    mutableState.value = PostDetailUiState.Error(e.message ?: "Failed to load comments")
+                }
         }
     }
 
     fun addComment(postId: String, content: String) {
         screenModelScope.launch {
-            // TODO: Add comment via repository
-            println("Adding comment to post $postId: $content")
-            // Reload comments
-            loadComments(postId)
+            // Optimistic update or show loading? For now, just call API and reload
+            // Ideally we'd append to the list locally first
+            repository.addComment(postId, content)
+                .onSuccess { newComment ->
+                    val currentState = mutableState.value
+                    if (currentState is PostDetailUiState.Success) {
+                        // Prepend new comment
+                        mutableState.value = PostDetailUiState.Success(listOf(newComment) + currentState.comments)
+                    } else {
+                        loadComments(postId)
+                    }
+                }
+                .onFailure { e ->
+                    // TODO: Show error (maybe via a side effect channel)
+                    println("Failed to add comment: ${e.message}")
+                }
         }
     }
 
     fun toggleLike(postId: String) {
         screenModelScope.launch {
-            // TODO: Toggle like via repository
-            println("Toggling like for post $postId")
+            repository.likePost(postId)
+                .onSuccess {
+                    // Success, UI should already be updated optimistically in the screen if we had local state there
+                    // But here we might want to refresh the post or just assume success
+                    // The screen currently handles post like state via the Post object passed in.
+                    // To update it properly, we might need to return the new state or refresh the post.
+                    // For now, we just fire and forget as the UI might need a refresh mechanism for the post itself.
+                }
+                .onFailure {
+                    println("Failed to like post: ${it.message}")
+                }
         }
     }
 
     fun toggleCommentLike(commentId: String) {
         screenModelScope.launch {
-            // TODO: Toggle comment like via repository
-            println("Toggling like for comment $commentId")
-            // Update comment in list
+            // TODO: Implement comment liking in backend first
+            // repository.likeComment(commentId)
+            
+            // For now, just optimistic local update for demo
             val currentState = mutableState.value
             if (currentState is PostDetailUiState.Success) {
                 val updatedComments = currentState.comments.map { comment ->

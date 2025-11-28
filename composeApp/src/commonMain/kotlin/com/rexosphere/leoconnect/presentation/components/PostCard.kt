@@ -27,6 +27,7 @@ fun PostCard(
     post: Post,
     onLikeClick: () -> Unit,
     onPostClick: () -> Unit = {},
+    onUserClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -43,7 +44,10 @@ fun PostCard(
 
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
             // Header: Avatar + Name
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onUserClick(post.authorId) }
+            ) {
                 if (post.authorLogo != null) {
                     KamelImage(
                         resource = { asyncPainterResource(data = post.authorLogo) },

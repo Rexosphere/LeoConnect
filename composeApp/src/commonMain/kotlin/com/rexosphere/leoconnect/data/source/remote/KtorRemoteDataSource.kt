@@ -100,5 +100,69 @@ class KtorRemoteDataSource(
             ))
         }.body()
     }
+
+    suspend fun getComments(postId: String): CommentResponse {
+        return client.get("$baseUrl/posts/$postId/comments") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun addComment(postId: String, content: String): CommentResponseWrapper {
+        return client.post("$baseUrl/posts/$postId/comments") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(mapOf("content" to content))
+        }.body()
+    }
+
+    suspend fun getClubPosts(clubId: String): List<Post> {
+        return client.get("$baseUrl/clubs/$clubId/posts") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getUserProfileById(userId: String): UserProfile {
+        return client.get("$baseUrl/users/$userId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getUserPosts(userId: String): List<Post> {
+        return client.get("$baseUrl/users/$userId/posts") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
 }
+
+@kotlinx.serialization.Serializable
+data class CommentResponse(
+    val comments: List<com.rexosphere.leoconnect.domain.model.Comment>,
+    val total: Int,
+    val hasMore: Boolean
+)
+
+@kotlinx.serialization.Serializable
+data class CommentResponseWrapper(
+    val comment: com.rexosphere.leoconnect.domain.model.Comment
+)
 

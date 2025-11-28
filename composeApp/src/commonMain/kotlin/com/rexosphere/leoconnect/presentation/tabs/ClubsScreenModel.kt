@@ -47,26 +47,38 @@ class ClubsScreenModel(
         }
     }
 
-    fun selectDistrict(district: String) {
+    fun selectDistrict(district: String?) {
         val currentState = _uiState.value
         if (currentState is ClubsUiState.Success) {
             loadClubs(district, currentState.districts)
         }
     }
 
-    private fun loadClubs(district: String, districts: List<String>) {
+    private fun loadClubs(district: String?, districts: List<String>) {
         screenModelScope.launch {
             // Keep showing current content but maybe with a loading indicator overlay?
             // For simplicity, we'll just switch to Success with empty clubs momentarily or keep old ones
             // Let's just update the state when data arrives to avoid flickering to full loading screen
-            
-            repository.getClubsByDistrict(district)
-                .onSuccess { clubs ->
-                    _uiState.value = ClubsUiState.Success(districts, district, clubs)
+
+            if (district == null) {
+                // Load all clubs from all districts
+                val allClubs = mutableListOf<Club>()
+                districts.forEach { dist ->
+                    repository.getClubsByDistrict(dist)
+                        .onSuccess { clubs ->
+                            allClubs.addAll(clubs)
+                        }
                 }
-                .onFailure { error ->
-                    _uiState.value = ClubsUiState.Error(error.message ?: "Failed to load clubs")
-                }
+                _uiState.value = ClubsUiState.Success(districts, null, allClubs)
+            } else {
+                repository.getClubsByDistrict(district)
+                    .onSuccess { clubs ->
+                        _uiState.value = ClubsUiState.Success(districts, district, clubs)
+                    }
+                    .onFailure { error ->
+                        _uiState.value = ClubsUiState.Error(error.message ?: "Failed to load clubs")
+                    }
+            }
         }
     }
 }
