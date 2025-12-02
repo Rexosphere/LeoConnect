@@ -1,5 +1,6 @@
 package com.rexosphere.leoconnect.presentation
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -21,7 +22,9 @@ class MainScreen : Screen {
                 }
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding)) {
-                    CurrentTab()
+                    Crossfade(targetState = it.current) {
+                        CurrentTab()
+                    }
                 }
             }
         }

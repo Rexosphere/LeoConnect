@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.transitions.SlideTransition
 import com.rexosphere.leoconnect.presentation.auth.LoginScreen
 import com.rexosphere.leoconnect.ui.theme.AppTheme
 import io.kamel.core.config.KamelConfig
@@ -28,7 +29,9 @@ fun App() {
 
     AppTheme {
         CompositionLocalProvider(LocalKamelConfig provides kamelConfig) {
-            Navigator(LoginScreen())
+            Navigator(LoginScreen()) { navigator ->
+                SlideTransition(navigator)
+            }
         }
     }
 }
