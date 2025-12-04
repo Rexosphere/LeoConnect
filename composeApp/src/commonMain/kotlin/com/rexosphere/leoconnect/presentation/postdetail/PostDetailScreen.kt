@@ -7,10 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +23,11 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Comment
 import com.rexosphere.leoconnect.domain.model.Post
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.FilledHeart
+import com.rexosphere.leoconnect.presentation.icons.Heart
+import com.rexosphere.leoconnect.presentation.icons.PaperAirplane
+import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -52,7 +53,7 @@ data class PostDetailScreen(val post: Post) : Screen {
                     title = { Text("Post") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(ChevronLeft, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -193,7 +194,7 @@ private fun ThreadsStylePostItem(
                     modifier = Modifier.size(42.dp).clip(CircleShape),
                     contentScale = ContentScale.Crop,
                     onLoading = { CircularProgressIndicator(strokeWidth = 2.dp) },
-                    onFailure = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    onFailure = { Icon(User, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
                 Spacer(Modifier.width(12.dp))
                 Column {
@@ -233,7 +234,7 @@ private fun ThreadsStylePostItem(
                 modifier = Modifier.clickable { onLikeClick() }
             ) {
                 Icon(
-                    imageVector = if (post.isLikedByUser) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
+                    imageVector = if (post.isLikedByUser) FilledHeart else Heart,
                     contentDescription = "Like",
                     tint = if (post.isLikedByUser) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
@@ -360,7 +361,7 @@ private fun CommentInputBar(
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
                     Icon(
-                        Icons.AutoMirrored.Filled.Send,
+                        PaperAirplane,
                         contentDescription = "Send",
                         tint = if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )

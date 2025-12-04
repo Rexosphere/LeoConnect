@@ -68,9 +68,9 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun createPost(content: String, imageUrl: String?): Result<Post> {
+    override suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Result<Post> {
         return try {
-            val post = remoteDataSource.createPost(content, imageUrl)
+            val post = remoteDataSource.createPost(content, imageBytes, clubId, clubName)
             Result.success(post)
         } catch (e: Exception) {
             Result.failure(e)
@@ -168,6 +168,75 @@ class LeoRepositoryImpl(
         return try {
             val posts = remoteDataSource.getUserPosts(userId)
             Result.success(posts)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun search(query: String): Result<com.rexosphere.leoconnect.domain.repository.SearchResult> {
+        return try {
+            val response = remoteDataSource.search(query)
+            Result.success(
+                com.rexosphere.leoconnect.domain.repository.SearchResult(
+                    posts = response.posts,
+                    clubs = response.clubs,
+                    districts = response.districts
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getConversations(): Result<List<com.rexosphere.leoconnect.domain.model.Conversation>> {
+        return try {
+            val conversations = remoteDataSource.getConversations()
+            Result.success(conversations)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getMessages(userId: String): Result<List<com.rexosphere.leoconnect.domain.model.Message>> {
+        return try {
+            val messages = remoteDataSource.getMessages(userId)
+            Result.success(messages)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendMessage(receiverId: String, content: String): Result<com.rexosphere.leoconnect.domain.model.Message> {
+        return try {
+            val message = remoteDataSource.sendMessage(receiverId, content)
+            Result.success(message)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteMessage(messageId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.deleteMessage(messageId)
+            Result.success(response.success)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteConversation(userId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.deleteConversation(userId)
+            Result.success(response.success)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun searchUsers(query: String): Result<List<com.rexosphere.leoconnect.data.source.remote.UserSearchResult>> {
+        return try {
+            val users = remoteDataSource.searchUsers(query)
+            Result.success(users)
         } catch (e: Exception) {
             Result.failure(e)
         }

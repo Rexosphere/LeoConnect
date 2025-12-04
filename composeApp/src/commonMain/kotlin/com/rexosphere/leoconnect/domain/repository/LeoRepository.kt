@@ -39,7 +39,7 @@ interface LeoRepository {
     /**
      * Create a new post
      */
-    suspend fun createPost(content: String, imageUrl: String?): Result<Post>
+    suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Result<Post>
 
     /**
      * Get all districts
@@ -88,4 +88,45 @@ interface LeoRepository {
      * Get posts for a specific user
      */
     suspend fun getUserPosts(userId: String): Result<List<Post>>
+
+    /**
+     * Search for posts, clubs, and districts
+     */
+    suspend fun search(query: String): Result<SearchResult>
+
+    /**
+     * Get all conversations for the current user
+     */
+    suspend fun getConversations(): Result<List<com.rexosphere.leoconnect.domain.model.Conversation>>
+
+    /**
+     * Get messages with a specific user
+     */
+    suspend fun getMessages(userId: String): Result<List<com.rexosphere.leoconnect.domain.model.Message>>
+
+    /**
+     * Send a message to a user
+     */
+    suspend fun sendMessage(receiverId: String, content: String): Result<com.rexosphere.leoconnect.domain.model.Message>
+
+    /**
+     * Delete a message
+     */
+    suspend fun deleteMessage(messageId: String): Result<Boolean>
+
+    /**
+     * Delete a conversation with a user
+     */
+    suspend fun deleteConversation(userId: String): Result<Boolean>
+
+    /**
+     * Search for users to message
+     */
+    suspend fun searchUsers(query: String): Result<List<com.rexosphere.leoconnect.data.source.remote.UserSearchResult>>
 }
+
+data class SearchResult(
+    val posts: List<Post>,
+    val clubs: List<Club>,
+    val districts: List<String>
+)

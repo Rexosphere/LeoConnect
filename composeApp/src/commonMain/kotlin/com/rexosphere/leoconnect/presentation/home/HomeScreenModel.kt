@@ -41,8 +41,30 @@ class HomeScreenModel(
 
     fun likePost(postId: String) {
         screenModelScope.launch {
-            // Optimistic update could be implemented here by updating _uiState locally first
+            // Optimistic update
+            val currentState = _uiState.value
+            if (currentState is HomeUiState.Success) {
+                val updatedPosts = currentState.posts.map { post ->
+                    if (post.postId == postId) {
+                        post.copy(
+                            isLikedByUser = !post.isLikedByUser,
+                            likesCount = if (post.isLikedByUser) post.likesCount - 1 else post.likesCount + 1
+                        )
+                    } else {
+                        post
+                    }
+                }
+                _uiState.value = HomeUiState.Success(updatedPosts)
+            }
+
+            // Send network request
             repository.likePost(postId)
+                .onFailure {
+                    // Revert optimistic update on failure
+                    if (currentState is HomeUiState.Success) {
+                        _uiState.value = currentState
+                    }
+                }
         }
     }
 }

@@ -8,9 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +26,13 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Club
 import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.presentation.districtdetail.DistrictDetailScreen
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.DocumentMagnifyingGlass
+import com.rexosphere.leoconnect.presentation.icons.MagnifyingGlass
+import com.rexosphere.leoconnect.presentation.icons.MapPin
+import com.rexosphere.leoconnect.presentation.icons.Newspaper
+import com.rexosphere.leoconnect.presentation.icons.UserGroup
+import com.rexosphere.leoconnect.presentation.icons.XMark
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -58,16 +62,18 @@ class SearchScreen : Screen {
             },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
-            AnimatedContent(
-                targetState = uiState,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "SearchState"
-            ) { state ->
-                when (state) {
-                    is SearchUiState.Initial -> InitialSearchState()
-                    is SearchUiState.Loading -> LoadingState()
-                    is SearchUiState.Success -> SearchResults(state, navigator)
-                    is SearchUiState.Error -> ErrorState(state.message)
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                AnimatedContent(
+                    targetState = uiState,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "SearchState"
+                ) { state ->
+                    when (state) {
+                        is SearchUiState.Initial -> InitialSearchState()
+                        is SearchUiState.Loading -> LoadingState()
+                        is SearchUiState.Success -> SearchResults(state, navigator)
+                        is SearchUiState.Error -> ErrorState(state.message)
+                    }
                 }
             }
         }
@@ -90,11 +96,11 @@ private fun SearchTopBar(
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
                 placeholder = { Text("Search LeoConnect...") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
+                leadingIcon = { Icon(MagnifyingGlass, null) },
                 trailingIcon = {
                     AnimatedVisibility(query.isNotEmpty()) {
                         IconButton(onClick = { onQueryChange("") }) {
-                            Icon(Icons.Default.Close, "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(XMark, "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 },
@@ -110,7 +116,7 @@ private fun SearchTopBar(
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                Icon(ChevronLeft, "Back")
             }
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -124,7 +130,7 @@ private fun InitialSearchState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                Icons.Default.Search,
+                MagnifyingGlass,
                 contentDescription = null,
                 modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -207,7 +213,7 @@ private fun SearchResults(state: SearchUiState.Success, navigator: cafe.adriel.v
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            Icons.Default.SearchOff,
+                            DocumentMagnifyingGlass,
                             null,
                             modifier = Modifier.size(64.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -243,7 +249,7 @@ private fun SearchPostResult(post: Post, onClick: () -> Unit) {
         verticalAlignment = Alignment.Top
     ) {
         Icon(
-            Icons.Default.Article,
+            Newspaper,
             contentDescription = null,
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -296,12 +302,12 @@ private fun SearchClubResult(club: Club) {
                 onLoading = { CircularProgressIndicator(strokeWidth = 2.dp) },
                 onFailure = {
                     Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
-                        Icon(Icons.Default.Groups, null, modifier = Modifier.size(24.dp).align(Alignment.Center))
+                        Icon(UserGroup, null, modifier = Modifier.size(24.dp).align(Alignment.Center))
                     }
                 }
             )
         } else {
-            Icon(Icons.Default.Groups, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(UserGroup, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
         }
 
         Spacer(Modifier.width(16.dp))
@@ -327,7 +333,7 @@ private fun SearchDistrictResult(district: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            Icons.Default.LocationOn,
+            MapPin,
             contentDescription = null,
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.primary

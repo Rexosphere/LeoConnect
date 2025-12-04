@@ -51,7 +51,10 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.districtdetail.DistrictDetailScreenModel() }
     factory { com.rexosphere.leoconnect.presentation.clubdetail.ClubDetailScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreenModel(get()) }
-    factory { com.rexosphere.leoconnect.presentation.search.SearchScreenModel() }
+    factory { com.rexosphere.leoconnect.presentation.search.SearchScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.createpost.CreatePostScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get()) }
 }
 
 // Platform-specific modules will be added via expect/actual

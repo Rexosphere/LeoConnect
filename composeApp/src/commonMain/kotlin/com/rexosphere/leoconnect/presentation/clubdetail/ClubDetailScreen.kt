@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +23,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Club
 import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.presentation.components.PostCard
+import com.rexosphere.leoconnect.presentation.icons.ChatBubbleOvalLeftEllipsis
+import com.rexosphere.leoconnect.presentation.icons.CheckBadge
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.Cog6Tooth
+import com.rexosphere.leoconnect.presentation.icons.UserGroup
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
 import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
 import io.kamel.image.KamelImage
@@ -50,7 +52,7 @@ data class ClubDetailScreen(val club: Club) : Screen {
                     title = { Text("Club") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(ChevronLeft, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -80,7 +82,8 @@ data class ClubDetailScreen(val club: Club) : Screen {
                             item {
                                 Box(Modifier.fillMaxWidth().padding(64.dp), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(Icons.Default.PostAdd, null, modifier = Modifier.size(80.dp),
+                                        Icon(
+                                            ChatBubbleOvalLeftEllipsis, null, modifier = Modifier.size(80.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                                         Spacer(Modifier.height(16.dp))
                                         Text("No posts yet", style = MaterialTheme.typography.titleMedium)
@@ -135,7 +138,7 @@ private fun ClubHeader(club: Club) {
                         onFailure = {
                             Box(Modifier.size(88.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                                 contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Groups, null, modifier = Modifier.size(40.dp))
+                                Icon(UserGroup, null, modifier = Modifier.size(40.dp))
                             }
                         }
                     )
@@ -146,7 +149,7 @@ private fun ClubHeader(club: Club) {
                             .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Groups, null, modifier = Modifier.size(40.dp),
+                        Icon(UserGroup, null, modifier = Modifier.size(40.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -179,7 +182,7 @@ private fun ClubHeader(club: Club) {
                 )
                 if (club.isOfficial == true) {
                     Spacer(Modifier.width(8.dp))
-                    Icon(Icons.Default.Verified, "Official Club", tint = Color(0xFF1DA1F2), modifier = Modifier.size(26.dp))
+                    Icon(CheckBadge, "Official Club", tint = Color(0xFF1DA1F2), modifier = Modifier.size(26.dp))
                 }
             }
 
@@ -231,7 +234,7 @@ private fun ClubHeader(club: Club) {
                 AssistChip(
                     onClick = { /* Open admin menu */ },
                     label = { Text("You are an admin") },
-                    leadingIcon = { Icon(Icons.Default.AdminPanelSettings, null, modifier = Modifier.size(18.dp)) }
+                    leadingIcon = { Icon(Cog6Tooth, null, modifier = Modifier.size(18.dp)) }
                 )
             }
         }

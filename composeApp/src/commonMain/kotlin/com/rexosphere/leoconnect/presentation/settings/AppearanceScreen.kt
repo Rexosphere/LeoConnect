@@ -3,7 +3,6 @@ package com.rexosphere.leoconnect.presentation.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
@@ -14,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 
 class AppearanceScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,7 @@ class AppearanceScreen : Screen {
                     title = { Text("Appearance") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(ChevronLeft, contentDescription = "Back")
                         }
                     }
                 )

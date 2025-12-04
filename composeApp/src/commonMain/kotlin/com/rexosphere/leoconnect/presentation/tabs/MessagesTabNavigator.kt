@@ -1,26 +1,24 @@
 package com.rexosphere.leoconnect.presentation.tabs
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import com.rexosphere.leoconnect.presentation.home.HomeScreen
+import com.rexosphere.leoconnect.presentation.icons.ChatBubbleOvalLeftEllipsis
 
-object HomeTab : Tab {
+object MessagesTabNavigator : Tab {
 
     override val options: TabOptions
         @Composable
         get() {
-            val title = "Home"
-            val icon = rememberVectorPainter(com.rexosphere.leoconnect.presentation.icons.Home)
+            val title = "Messages"
+            val icon = rememberVectorPainter(ChatBubbleOvalLeftEllipsis)
 
             return remember {
                 TabOptions(
-                    index = 0u,
+                    index = 2u,
                     title = title,
                     icon = icon
                 )
@@ -29,6 +27,6 @@ object HomeTab : Tab {
 
     @Composable
     override fun Content() {
-        Navigator(HomeScreen())
+        Navigator(MessagesScreen())
     }
 }

@@ -5,11 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +14,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.rexosphere.leoconnect.domain.model.Post
+import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
+import com.rexosphere.leoconnect.presentation.icons.FilledHeart
+import com.rexosphere.leoconnect.presentation.icons.Heart
+import com.rexosphere.leoconnect.presentation.icons.User
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -64,7 +63,7 @@ fun PostCard(
                         },
                         onFailure = {
                             Icon(
-                                Icons.Default.Person,
+                                User,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -113,7 +112,7 @@ fun PostCard(
                     onLoading = { CircularProgressIndicator(it) },
                     onFailure = {
                         Icon(
-                            Icons.Default.Warning,
+                            ExclamationTriangle,
                             contentDescription = "Failed to load",
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -127,7 +126,7 @@ fun PostCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onLikeClick) {
                     Icon(
-                        imageVector = if (post.isLikedByUser) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        imageVector = if (post.isLikedByUser) FilledHeart else Heart,
                         contentDescription = "Like",
                         tint = if (post.isLikedByUser)
                             Color(0xFFE91E63) // Instagram/Threads pink-red

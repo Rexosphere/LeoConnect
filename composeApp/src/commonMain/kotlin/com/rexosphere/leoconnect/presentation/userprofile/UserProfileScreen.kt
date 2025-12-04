@@ -6,9 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +22,16 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.presentation.components.PostCard
+import com.rexosphere.leoconnect.presentation.icons.CheckBadge
+import com.rexosphere.leoconnect.presentation.icons.CheckCircle
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.CodeBracket
+import com.rexosphere.leoconnect.presentation.icons.EllipsisVertical
+import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
+import com.rexosphere.leoconnect.presentation.icons.Newspaper
+import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
+import com.rexosphere.leoconnect.presentation.chat.ChatScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -48,12 +54,12 @@ data class UserProfileScreen(val userId: String) : Screen {
                     title = { Text("Profile") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(ChevronLeft, contentDescription = "Back")
                         }
                     },
                     actions = {
                         IconButton(onClick = { /* Report / Block */ }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                            Icon(EllipsisVertical, contentDescription = "More")
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -71,7 +77,7 @@ data class UserProfileScreen(val userId: String) : Screen {
                 is UserProfileUiState.Error -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Warning, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
+                            Icon(ExclamationTriangle, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
                             Spacer(Modifier.height(16.dp))
                             Text(uiState.message, color = MaterialTheme.colorScheme.error)
                         }
@@ -85,7 +91,7 @@ data class UserProfileScreen(val userId: String) : Screen {
                             .padding(padding),
                         contentPadding = PaddingValues(bottom = 100.dp)
                     ) {
-                        item { OtherUserHeader(profile = profile, screenModel = screenModel) }
+                        item { OtherUserHeader(profile = profile, screenModel = screenModel, navigator = navigator) }
                         item { Spacer(Modifier.height(24.dp)) }
 
                         if (uiState.posts.isEmpty()) {
@@ -93,7 +99,7 @@ data class UserProfileScreen(val userId: String) : Screen {
                                 Box(Modifier.fillMaxWidth().padding(64.dp), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Icon(
-                                            Icons.Default.PersonOff,
+                                            Newspaper,
                                             null,
                                             modifier = Modifier.size(80.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -129,7 +135,8 @@ data class UserProfileScreen(val userId: String) : Screen {
 @Composable
 private fun OtherUserHeader(
     profile: UserProfile,
-    screenModel: UserProfileScreenModel
+    screenModel: UserProfileScreenModel,
+    navigator: cafe.adriel.voyager.navigator.Navigator
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
@@ -149,7 +156,7 @@ private fun OtherUserHeader(
                         onFailure = {
                             Box(Modifier.size(96.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                                 contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Person, null, modifier = Modifier.size(48.dp))
+                                Icon(User, null, modifier = Modifier.size(48.dp))
                             }
                         }
                     )
@@ -160,7 +167,7 @@ private fun OtherUserHeader(
                             .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Person, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(User, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -193,7 +200,7 @@ private fun OtherUserHeader(
                     )
                     if (!profile.leoId.isNullOrEmpty()) {
                         Spacer(Modifier.width(8.dp))
-                        Icon(Icons.Default.Verified, "Verified Leo", tint = Color(0xFF1DA1F2), modifier = Modifier.size(26.dp))
+                        Icon(CheckBadge, "Verified Leo", tint = Color(0xFF1DA1F2), modifier = Modifier.size(26.dp))
                     }
                 }
 
@@ -217,7 +224,7 @@ private fun OtherUserHeader(
                     Spacer(Modifier.height(6.dp))
                     Surface(color = Color(0xFFFF6B6B).copy(alpha = 0.15f), shape = RoundedCornerShape(20.dp)) {
                         Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                            Icon(Icons.Default.Code, null, modifier = Modifier.size(16.dp), tint = Color(0xFFFF6B6B))
+                            Icon(CodeBracket, null, modifier = Modifier.size(16.dp), tint = Color(0xFFFF6B6B))
                             Spacer(Modifier.width(4.dp))
                             Text("Webmaster", color = Color(0xFFFF6B6B), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         }
@@ -260,7 +267,9 @@ private fun OtherUserHeader(
                 }
 
                 OutlinedButton(
-                    onClick = { /* Message */ },
+                    onClick = {
+                        navigator.push(ChatScreen(profile))
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Message")
@@ -272,7 +281,7 @@ private fun OtherUserHeader(
                 AssistChip(
                     onClick = { },
                     label = { Text("Follows you") },
-                    leadingIcon = { Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp)) }
+                    leadingIcon = { Icon(CheckCircle, null, modifier = Modifier.size(16.dp)) }
                 )
             }
         }

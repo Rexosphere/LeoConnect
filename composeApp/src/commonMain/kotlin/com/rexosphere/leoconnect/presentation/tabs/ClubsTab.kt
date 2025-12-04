@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,11 +28,17 @@ import com.rexosphere.leoconnect.domain.model.Club
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import com.rexosphere.leoconnect.presentation.icons.Check
+import com.rexosphere.leoconnect.presentation.icons.DocumentMagnifyingGlass
+import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
+import com.rexosphere.leoconnect.presentation.icons.Heart
+import com.rexosphere.leoconnect.presentation.icons.UserGroup
+import com.rexosphere.leoconnect.presentation.icons.Users
 
 object ClubsTab : Tab {
     override val options: TabOptions
         @Composable get() {
-            val icon = rememberVectorPainter(Icons.Default.Groups)
+            val icon = rememberVectorPainter(UserGroup)
             return TabOptions(
                 index = 1u,
                 title = "Clubs",
@@ -62,7 +66,7 @@ class ClubsScreen : Screen {
             is ClubsUiState.Error -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Warning, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
+                        Icon(ExclamationTriangle, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(16.dp))
                         Text(uiState.message, color = MaterialTheme.colorScheme.error)
                     }
@@ -84,7 +88,7 @@ class ClubsScreen : Screen {
                                     onClick = { screenModel.selectDistrict(null) },
                                     label = { Text("All Districts") },
                                     leadingIcon = if (uiState.selectedDistrict == null) {
-                                        { Icon(Icons.Default.Done, null, modifier = Modifier.size(18.dp)) }
+                                        { Icon(Check, null, modifier = Modifier.size(18.dp)) }
                                     } else null
                                 )
                             }
@@ -107,7 +111,7 @@ class ClubsScreen : Screen {
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(
-                                        Icons.Default.SearchOff,
+                                        DocumentMagnifyingGlass,
                                         null,
                                         modifier = Modifier.size(80.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -172,7 +176,7 @@ private fun ThreadsStyleClubItem(club: Club) {
                             .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Groups, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(UserGroup, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             )
@@ -183,7 +187,7 @@ private fun ThreadsStyleClubItem(club: Club) {
                     .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Groups, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(UserGroup, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -218,7 +222,7 @@ private fun ThreadsStyleClubItem(club: Club) {
             // Stats
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.People, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Users, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = "${club.membersCount} members",
@@ -227,7 +231,7 @@ private fun ThreadsStyleClubItem(club: Club) {
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.FavoriteBorder, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Heart, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = "${club.followersCount} followers",

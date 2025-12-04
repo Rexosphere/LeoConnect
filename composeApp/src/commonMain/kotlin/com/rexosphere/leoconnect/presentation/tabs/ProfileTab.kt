@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,13 +32,21 @@ import leoconnect.composeapp.generated.resources.ic_leo_badge
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.Navigator
 import com.rexosphere.leoconnect.domain.model.UserProfile
+import com.rexosphere.leoconnect.presentation.icons.CalendarDays
+import com.rexosphere.leoconnect.presentation.icons.CheckBadge
+import com.rexosphere.leoconnect.presentation.icons.ChevronRight
+import com.rexosphere.leoconnect.presentation.icons.Cog6Tooth
+import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
+import com.rexosphere.leoconnect.presentation.icons.Heart
+import com.rexosphere.leoconnect.presentation.icons.User
+import com.rexosphere.leoconnect.presentation.icons.Users
 
 object ProfileTab : Tab {
     override val options: TabOptions
         @Composable get() {
-            val icon = rememberVectorPainter(Icons.Default.Person)
+            val icon = rememberVectorPainter(User)
             return TabOptions(
-                index = 4u,
+                index = 3u,
                 title = "Profile",
                 icon = icon
             )
@@ -68,7 +73,7 @@ class ProfileScreen : Screen {
             is ProfileUiState.Error -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Warning, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
+                        Icon(ExclamationTriangle, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(16.dp))
                         Text(uiState.message, color = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(16.dp))
@@ -93,7 +98,7 @@ class ProfileScreen : Screen {
                     if (profile.leoId.isNullOrEmpty()) {
                         item {
                             ProfileMenuItem(
-                                icon = Icons.Default.Verified,
+                                icon = CheckBadge,
                                 title = "Verify Leo ID",
                                 subtitle = "Prove you're a real Leo member",
                                 badge = "New",
@@ -104,7 +109,7 @@ class ProfileScreen : Screen {
 
                     item {
                         ProfileMenuItem(
-                            icon = Icons.Default.DateRange,
+                            icon = CalendarDays,
                             title = "My Leo Journey",
                             subtitle = "Your membership history & milestones",
                             onClick = { /* TODO */ }
@@ -113,7 +118,7 @@ class ProfileScreen : Screen {
 
                     item {
                         ProfileMenuItem(
-                            icon = Icons.Default.FavoriteBorder,
+                            icon = Heart,
                             title = "Following",
                             subtitle = "${profile.followingClubs.size} clubs you're following",
                             onClick = { /* TODO */ }
@@ -122,7 +127,7 @@ class ProfileScreen : Screen {
 
                     item {
                         ProfileMenuItem(
-                            icon = Icons.Default.Share,
+                            icon = Users,
                             title = "Invite Friends",
                             subtitle = "Bring more Leos to LeoConnect",
                             onClick = { /* TODO */ }
@@ -145,7 +150,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
                 onClick = onSettingsClick,
                 modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
             ) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings")
+                Icon(Cog6Tooth, contentDescription = "Settings")
             }
         }
 
@@ -165,7 +170,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
                     onLoading = { CircularProgressIndicator(strokeWidth = 3.dp) },
                     onFailure = {
                         Box(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
-                            Icon(Icons.Default.Person, null, modifier = Modifier.size(50.dp).align(Alignment.Center))
+                            Icon(User, null, modifier = Modifier.size(50.dp).align(Alignment.Center))
                         }
                     }
                 )
@@ -176,7 +181,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
                         .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, null, modifier = Modifier.size(50.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(User, null, modifier = Modifier.size(50.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -194,7 +199,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
                 if (!profile.leoId.isNullOrEmpty()) {
                     Spacer(Modifier.width(8.dp))
                     Icon(
-                        Icons.Default.Verified,
+                        CheckBadge,
                         contentDescription = "Verified Leo",
                         tint = Color(0xFF1DA1F2),
                         modifier = Modifier.size(28.dp)
@@ -300,7 +305,7 @@ private fun ProfileMenuItem(
         }
 
         Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            ChevronRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )

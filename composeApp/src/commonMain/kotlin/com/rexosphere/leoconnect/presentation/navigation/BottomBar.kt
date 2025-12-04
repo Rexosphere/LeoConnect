@@ -20,6 +20,7 @@ fun BottomBar() {
     ) {
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.HomeTab)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ClubsTab)
+        TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.MessagesTabNavigator)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ProfileTab)
     }
 }

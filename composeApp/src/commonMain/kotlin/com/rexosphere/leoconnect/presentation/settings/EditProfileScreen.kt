@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +16,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.presentation.icons.Camera
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.presentation.tabs.ProfileScreenModel
 import com.rexosphere.leoconnect.presentation.tabs.ProfileUiState
 import io.kamel.image.KamelImage
@@ -54,7 +54,7 @@ class EditProfileScreen : Screen {
                     title = { Text("Edit Profile") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(ChevronLeft, contentDescription = "Back")
                         }
                     },
                     actions = {
@@ -90,11 +90,11 @@ class EditProfileScreen : Screen {
                                         .clip(CircleShape),
                                     contentScale = ContentScale.Crop,
                                     onLoading = { CircularProgressIndicator() },
-                                    onFailure = { Icon(Icons.Default.Person, contentDescription = null) }
+                                    onFailure = { Icon(User, contentDescription = null) }
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.Person,
+                                    imageVector = User,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(120.dp)
@@ -109,7 +109,7 @@ class EditProfileScreen : Screen {
                             containerColor = MaterialTheme.colorScheme.primary
                         ) {
                             Icon(
-                                Icons.Default.CameraAlt,
+                                Camera,
                                 contentDescription = "Change Photo",
                                 modifier = Modifier.size(20.dp)
                             )

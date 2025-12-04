@@ -9,6 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.patch
+import io.ktor.client.request.delete
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -52,7 +53,7 @@ class KtorRemoteDataSource(
         }
     }
 
-    suspend fun createPost(content: String, imageUrl: String?): Post {
+    suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Post {
         return client.post("$baseUrl/posts") {
             contentType(ContentType.Application.Json)
             getToken()?.let { token ->
@@ -62,7 +63,9 @@ class KtorRemoteDataSource(
             }
             setBody(mapOf(
                 "content" to content,
-                "imageUrl" to imageUrl
+                "imageBytes" to imageBytes,
+                "clubId" to clubId,
+                "clubName" to clubName
             ))
         }.body()
     }
@@ -152,6 +155,81 @@ class KtorRemoteDataSource(
             }
         }.body()
     }
+
+    suspend fun search(query: String): SearchResponse {
+        return client.get("$baseUrl/search?q=$query") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getConversations(): List<com.rexosphere.leoconnect.domain.model.Conversation> {
+        return client.get("$baseUrl/conversations") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getMessages(userId: String): List<com.rexosphere.leoconnect.domain.model.Message> {
+        return client.get("$baseUrl/messages/$userId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun sendMessage(receiverId: String, content: String): com.rexosphere.leoconnect.domain.model.Message {
+        return client.post("$baseUrl/messages") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(mapOf(
+                "receiverId" to receiverId,
+                "content" to content
+            ))
+        }.body()
+    }
+
+    suspend fun deleteMessage(messageId: String): DeleteResponse {
+        return client.delete("$baseUrl/messages/$messageId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun deleteConversation(userId: String): DeleteResponse {
+        return client.delete("$baseUrl/conversations/$userId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun searchUsers(query: String): List<UserSearchResult> {
+        return client.get("$baseUrl/search/users?q=$query") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
 }
 
 @kotlinx.serialization.Serializable
@@ -164,5 +242,24 @@ data class CommentResponse(
 @kotlinx.serialization.Serializable
 data class CommentResponseWrapper(
     val comment: com.rexosphere.leoconnect.domain.model.Comment
+)
+
+@kotlinx.serialization.Serializable
+data class SearchResponse(
+    val clubs: List<Club>,
+    val districts: List<String>,
+    val posts: List<Post>
+)
+
+@kotlinx.serialization.Serializable
+data class DeleteResponse(
+    val success: Boolean
+)
+
+@kotlinx.serialization.Serializable
+data class UserSearchResult(
+    val userId: String,
+    val displayName: String,
+    val photoUrl: String?
 )
 

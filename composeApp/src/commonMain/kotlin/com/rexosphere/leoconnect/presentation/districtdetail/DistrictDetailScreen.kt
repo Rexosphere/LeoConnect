@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +20,11 @@ import com.rexosphere.leoconnect.domain.model.Club
 import com.rexosphere.leoconnect.domain.model.District
 import com.rexosphere.leoconnect.domain.model.Event
 import com.rexosphere.leoconnect.domain.model.Post
+import com.rexosphere.leoconnect.presentation.icons.BuildingOffice2
+import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
+import com.rexosphere.leoconnect.presentation.icons.Photo
+import com.rexosphere.leoconnect.presentation.icons.User
+import com.rexosphere.leoconnect.presentation.icons.UserGroup
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -45,7 +47,7 @@ data class DistrictDetailScreen(val districtName: String) : Screen {
                     title = { Text("District Details") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                            Icon(ChevronLeft, "Back")
                         }
                     }
                 )
@@ -174,7 +176,7 @@ fun DistrictHeader(district: District) {
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Image, "No image")
+                        Icon(Photo, "No image")
                     }
                 }
             )
@@ -195,12 +197,12 @@ fun DistrictHeader(district: District) {
                     contentScale = ContentScale.Crop,
                     onLoading = { CircularProgressIndicator(modifier = Modifier.size(32.dp)) },
                     onFailure = {
-                        Icon(Icons.Default.AccountBalance, "No logo", modifier = Modifier.size(64.dp))
+                        Icon(BuildingOffice2, "No logo", modifier = Modifier.size(64.dp))
                     }
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.AccountBalance,
+                    imageVector = BuildingOffice2,
                     contentDescription = null,
                     modifier = Modifier.size(64.dp)
                 )
@@ -290,12 +292,12 @@ fun ChairmanCard(chairman: com.rexosphere.leoconnect.domain.model.ChairmanInfo) 
                     contentScale = ContentScale.Crop,
                     onLoading = { CircularProgressIndicator(modifier = Modifier.size(28.dp)) },
                     onFailure = {
-                        Icon(Icons.Default.Person, "No photo", modifier = Modifier.size(56.dp))
+                        Icon(User, "No photo", modifier = Modifier.size(56.dp))
                     }
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = User,
                     contentDescription = null,
                     modifier = Modifier.size(56.dp)
                 )
@@ -347,12 +349,12 @@ fun ClubListItem(club: Club) {
                     contentScale = ContentScale.Crop,
                     onLoading = { CircularProgressIndicator(modifier = Modifier.size(20.dp)) },
                     onFailure = {
-                        Icon(Icons.Default.Groups, "No logo")
+                        Icon(UserGroup, "No logo")
                     }
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.Groups,
+                    imageVector = UserGroup,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp)
                 )

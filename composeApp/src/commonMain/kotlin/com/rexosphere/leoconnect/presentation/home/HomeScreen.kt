@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,9 +19,12 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.presentation.components.PostCard
 import com.rexosphere.leoconnect.presentation.components.EmptyState
+import com.rexosphere.leoconnect.presentation.icons.MagnifyingGlass
+import com.rexosphere.leoconnect.presentation.icons.Plus
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
 import com.rexosphere.leoconnect.presentation.search.SearchScreen
 import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
+import com.rexosphere.leoconnect.presentation.createpost.CreatePostScreen
 
 class HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -39,10 +40,18 @@ class HomeScreen : Screen {
                     title = { Text("LeoConnect") },
                     actions = {
                         IconButton(onClick = { navigator.push(SearchScreen()) }) {
-                            Icon(Icons.Default.Search, "Search")
+                            Icon(MagnifyingGlass, "Search")
                         }
                     }
                 )
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { navigator.push(CreatePostScreen()) },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Plus, contentDescription = "Create Post")
+                }
             }
         ) { padding ->
             Box(
