@@ -22,6 +22,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.presentation.components.PostCard
+import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.icons.CheckBadge
 import com.rexosphere.leoconnect.presentation.icons.CheckCircle
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
@@ -43,9 +44,16 @@ data class UserProfileScreen(val userId: String) : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = koinScreenModel<UserProfileScreenModel>()
         val state by screenModel.uiState.collectAsState()
+        var isRefreshing by remember { mutableStateOf(false) }
 
         LaunchedEffect(userId) {
             screenModel.loadUser(userId)
+        }
+
+        LaunchedEffect(state) {
+            if (state !is UserProfileUiState.Loading) {
+                isRefreshing = false
+            }
         }
 
         Scaffold(
@@ -85,12 +93,20 @@ data class UserProfileScreen(val userId: String) : Screen {
                 }
                 is UserProfileUiState.Success -> {
                     val profile = uiState.profile
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        contentPadding = PaddingValues(bottom = 100.dp)
+                    PullToRefreshContainer(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            screenModel.loadUser(userId)
+                        },
+                        modifier = Modifier.fillMaxSize()
                     ) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(padding),
+                            contentPadding = PaddingValues(bottom = 100.dp)
+                        ) {
                         item { OtherUserHeader(profile = profile, screenModel = screenModel, navigator = navigator) }
                         item { Spacer(Modifier.height(24.dp)) }
 
@@ -124,6 +140,7 @@ data class UserProfileScreen(val userId: String) : Screen {
                                 )
                                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                             }
+                        }
                         }
                     }
                 }

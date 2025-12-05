@@ -27,8 +27,10 @@ import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.FilledHeart
 import com.rexosphere.leoconnect.presentation.icons.Heart
 import com.rexosphere.leoconnect.presentation.icons.PaperAirplane
+import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.presentation.userprofile.UserProfileScreen
+import com.rexosphere.leoconnect.util.ClickableTextWithLinks
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -42,9 +44,16 @@ data class PostDetailScreen(val post: Post) : Screen {
         val uiState by screenModel.uiState.collectAsState()
         var commentText by remember { mutableStateOf("") }
         var currentPost by remember { mutableStateOf(post) }
+        var isRefreshing by remember { mutableStateOf(false) }
 
         LaunchedEffect(post.postId) {
             screenModel.loadComments(post.postId)
+        }
+
+        LaunchedEffect(uiState) {
+            if (uiState !is PostDetailUiState.Loading) {
+                isRefreshing = false
+            }
         }
 
         Scaffold(
@@ -76,11 +85,19 @@ data class PostDetailScreen(val post: Post) : Screen {
                 )
             }
         ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+            PullToRefreshContainer(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    screenModel.loadComments(post.postId)
+                },
+                modifier = Modifier.fillMaxSize()
             ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
                 // Main Post
                 item {
                     ThreadsStylePostItem(
@@ -166,7 +183,8 @@ data class PostDetailScreen(val post: Post) : Screen {
                     }
                 }
 
-                item { Spacer(Modifier.height(80.dp)) } // Extra space for bottom bar
+                    item { Spacer(Modifier.height(80.dp)) } // Extra space for bottom bar
+                }
             }
         }
     }
@@ -206,10 +224,11 @@ private fun ThreadsStylePostItem(
             Spacer(Modifier.height(12.dp))
 
             // Post Text
-            Text(
+            ClickableTextWithLinks(
                 text = post.content,
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = 26.sp
+                style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp),
+                color = MaterialTheme.colorScheme.onSurface,
+                linkColor = MaterialTheme.colorScheme.primary
             )
 
             // Image
@@ -297,10 +316,11 @@ private fun ThreadsStyleCommentItem(
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
+            ClickableTextWithLinks(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                linkColor = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.height(6.dp))

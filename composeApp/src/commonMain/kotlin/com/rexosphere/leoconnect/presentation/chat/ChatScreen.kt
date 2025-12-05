@@ -29,6 +29,7 @@ import org.koin.compose.koinInject
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.PaperAirplane
 import com.rexosphere.leoconnect.presentation.icons.User
+import com.rexosphere.leoconnect.util.ClickableTextWithLinks
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -275,10 +276,15 @@ private fun MessageBubble(
             shape = bubbleShape
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(
+                ClickableTextWithLinks(
                     text = message.content,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = textColor
+                    color = textColor,
+                    linkColor = if (isCurrentUser) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(

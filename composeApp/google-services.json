@@ -14,10 +14,55 @@
       },
       "oauth_client": [
         {
+          "client_id": "124058547668-9hfv9r4jv3ml8c2adsuvc49hajo8ku5l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rexosphere.leoconnect",
+            "certificate_hash": "e134cad8360d69864eaf6a82d97cccd4b49a97c7"
+          }
+        },
+        {
           "client_id": "124058547668-a1c3cp20td4fo35f8vl7ebcgt52795ts.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.rexosphere.leoconnect",
+            "certificate_hash": "9b8b4f50f7829b630e18e4bf8fe63147752c2652"
+          }
+        },
+        {
+          "client_id": "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdgHZLMvl6766ih1_VtnOoHAIMMYjZeeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:124058547668:android:75d031aab88c4670835241",
+        "android_client_info": {
+          "package_name": "com.rexosphere.leoconnect.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "124058547668-tiagthjmtjht1r75gvsqjr59sh12ilhm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rexosphere.leoconnect.debug",
             "certificate_hash": "9b8b4f50f7829b630e18e4bf8fe63147752c2652"
           }
         },

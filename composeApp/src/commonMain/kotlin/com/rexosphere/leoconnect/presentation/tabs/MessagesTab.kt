@@ -33,6 +33,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Conversation
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.presentation.chat.ChatScreen
+import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.icons.ChatBubbleOvalLeftEllipsis
 import com.rexosphere.leoconnect.presentation.icons.User
 import io.kamel.image.KamelImage
@@ -81,6 +82,14 @@ private fun MessagesTab(
     navigator: cafe.adriel.voyager.navigator.Navigator,
     onStartNewConversation: () -> Unit
 ) {
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState) {
+        if (uiState !is MessagesUiState.Loading) {
+            isRefreshing = false
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -113,33 +122,42 @@ private fun MessagesTab(
                 if (state.conversations.isEmpty()) {
                     EmptyMessagesState()
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                    PullToRefreshContainer(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            screenModel.loadConversations()
+                        },
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(state.conversations, key = { it.userId }) { conversation ->
-                            ConversationItem(
-                                conversation = conversation,
-                                onClick = {
-                                    // Create a UserProfile from the conversation data
-                                    val userProfile = UserProfile(
-                                        uid = conversation.userId,
-                                        email = "",
-                                        displayName = conversation.displayName,
-                                        photoURL = conversation.photoUrl,
-                                        leoId = null,
-                                        assignedClubId = null
-                                    )
-                                    navigator.push(ChatScreen(userProfile))
-                                },
-                                onDelete = {
-                                    screenModel.deleteConversation(conversation.userId)
-                                }
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                            )
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            items(state.conversations, key = { it.userId }) { conversation ->
+                                ConversationItem(
+                                    conversation = conversation,
+                                    onClick = {
+                                        // Create a UserProfile from the conversation data
+                                        val userProfile = UserProfile(
+                                            uid = conversation.userId,
+                                            email = "",
+                                            displayName = conversation.displayName,
+                                            photoURL = conversation.photoUrl,
+                                            leoId = null,
+                                            assignedClubId = null
+                                        )
+                                        navigator.push(ChatScreen(userProfile))
+                                    },
+                                    onDelete = {
+                                        screenModel.deleteConversation(conversation.userId)
+                                    }
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                )
+                            }
                         }
                     }
                 }

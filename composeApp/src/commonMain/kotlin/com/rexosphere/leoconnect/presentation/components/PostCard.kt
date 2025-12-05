@@ -18,6 +18,7 @@ import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
 import com.rexosphere.leoconnect.presentation.icons.FilledHeart
 import com.rexosphere.leoconnect.presentation.icons.Heart
 import com.rexosphere.leoconnect.presentation.icons.User
+import com.rexosphere.leoconnect.util.ClickableTextWithLinks
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -92,10 +93,11 @@ fun PostCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Post content
-            Text(
+            ClickableTextWithLinks(
                 text = post.content,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                linkColor = MaterialTheme.colorScheme.primary
             )
 
             // Post image (if exists)
