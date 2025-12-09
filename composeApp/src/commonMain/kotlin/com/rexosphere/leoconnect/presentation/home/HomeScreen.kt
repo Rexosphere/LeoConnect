@@ -33,6 +33,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.components.EmptyState
+import com.rexosphere.leoconnect.presentation.components.NotificationButton
 import com.rexosphere.leoconnect.presentation.components.PostCard
 import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.createpost.CreatePostScreen
@@ -77,6 +78,7 @@ class HomeScreen : Screen {
                         )
                     },
                     actions = {
+                        NotificationButton()
                         IconButton(onClick = { navigator.push(SearchScreen()) }) {
                             Icon(MagnifyingGlass, "Search")
                         }

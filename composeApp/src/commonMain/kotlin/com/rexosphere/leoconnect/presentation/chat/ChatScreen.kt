@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Message
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.domain.service.AuthService
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import org.koin.compose.koinInject
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.PaperAirplane
@@ -104,10 +105,12 @@ data class ChatScreen(
                 )
             }
         ) { paddingValues ->
+            val bottomBarPadding = LocalBottomBarPadding.current
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .padding(bottom = bottomBarPadding)
             ) {
                 when (val state = uiState) {
                     is ChatUiState.Loading -> {

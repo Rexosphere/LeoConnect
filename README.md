@@ -49,6 +49,7 @@ Enjoy a beautiful, modern experience across all your devices—Android, iOS, and
 *   **Social Feed**: A personalized feed of posts from clubs and Leos you follow.
 *   **Club Discovery**: Easily find and explore clubs by district.
 *   **Event Management**: View event details, locations, and track your participation.
+*   **Push Notifications**: Stay updated with real-time notifications for messages, follows, and posts.
 *   **Impact Tracking**: Keep a record of your service contributions (Coming Soon).
 *   **Secure Profile**: Manage your identity and privacy with ease.
 

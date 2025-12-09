@@ -25,6 +25,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            export(libs.kmpnotifier)
         }
     }
 
@@ -79,6 +80,9 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
+            // Kotlinx DateTime
+            implementation(libs.kotlinx.datetime)
+
             // Kamel
             implementation(libs.kamel.image)
             implementation(libs.kamel.image.default)
@@ -89,6 +93,9 @@ kotlin {
             // Firebase
             implementation(libs.firebase.auth)
             implementation(libs.firebase.common)
+
+            // KMPNotifier for push notifications
+            api(libs.kmpnotifier)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -175,6 +182,7 @@ dependencies {
     "implementation"(platform(libs.firebase.bom))
     "implementation"(libs.firebase.auth.android)
     "implementation"(libs.firebase.common.android)
+    "implementation"("com.google.firebase:firebase-messaging")
 }
 
 compose.desktop {

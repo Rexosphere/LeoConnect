@@ -42,6 +42,18 @@ val commonModule = module {
     }
     single<LeoRepository> { LeoRepositoryImpl(get(), get(), get()) }
 
+    // Notification service and repository
+    single<com.rexosphere.leoconnect.data.service.NotificationService> {
+        com.rexosphere.leoconnect.data.service.NotificationServiceImpl(
+            httpClient = get(),
+            baseUrl = "https://leoconnect.rexosphere.com",
+            getToken = { get<AuthService>().getCurrentToken() }
+        )
+    }
+    single<com.rexosphere.leoconnect.data.repository.NotificationRepository> {
+        com.rexosphere.leoconnect.data.repository.NotificationRepositoryImpl(get())
+    }
+
     // ViewModels
     factory { LoginScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.auth.OnboardingScreenModel(get()) }
@@ -56,6 +68,7 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.createpost.CreatePostScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.notifications.NotificationsScreenModel(get()) }
 }
 
 // Platform-specific modules will be added via expect/actual
