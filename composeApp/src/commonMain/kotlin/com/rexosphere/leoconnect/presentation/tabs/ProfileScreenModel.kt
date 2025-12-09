@@ -39,15 +39,15 @@ class ProfileScreenModel(
         }
     }
 
-    fun updateProfile(leoId: String?, assignedClubId: String?) {
+    fun updateProfile(leoId: String?, assignedClubId: String?, bio: String?) {
         screenModelScope.launch {
-            // Optimistic update or loading state could be added here
-            repository.updateUserProfile(leoId, assignedClubId)
+            _uiState.value = ProfileUiState.Loading
+            repository.updateUserProfile(leoId, assignedClubId, bio)
                 .onSuccess { profile ->
                     _uiState.value = ProfileUiState.Success(profile)
                 }
                 .onFailure { error ->
-                    // Handle error, maybe show snackbar
+                    _uiState.value = ProfileUiState.Error(error.message ?: "Failed to update profile")
                 }
         }
     }

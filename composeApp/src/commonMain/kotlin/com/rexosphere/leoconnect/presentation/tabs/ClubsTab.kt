@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.rexosphere.leoconnect.domain.model.Club
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -56,6 +57,7 @@ class ClubsScreen : Screen {
     override fun Content() {
         val screenModel = koinScreenModel<ClubsScreenModel>()
         val state by screenModel.uiState.collectAsState()
+        val bottomBarPadding = LocalBottomBarPadding.current
 
         when (val uiState = state) {
             is ClubsUiState.Loading -> {
@@ -74,7 +76,7 @@ class ClubsScreen : Screen {
             }
             is ClubsUiState.Success -> {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 100.dp)
+                    contentPadding = PaddingValues(bottom = bottomBarPadding + 16.dp)
                 ) {
                     // District Filter Chips
                     item {

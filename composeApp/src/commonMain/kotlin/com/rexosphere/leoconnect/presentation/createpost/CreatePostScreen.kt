@@ -53,9 +53,7 @@ class CreatePostScreen : Screen {
                             onClick = {
                                 screenModel.createPost(
                                     content = content,
-                                    imageBytes = selectedImageBase64,
-                                    clubId = null,
-                                    clubName = null
+                                    imageBytes = selectedImageBase64
                                 )
                             },
                             enabled = content.isNotBlank() && !isLoading

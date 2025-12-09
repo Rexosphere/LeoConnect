@@ -32,9 +32,13 @@ class LoginScreen : Screen {
         val state by screenModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
-        LaunchedEffect(state.isSignedIn) {
+        LaunchedEffect(state.isSignedIn, state.needsOnboarding) {
             if (state.isSignedIn) {
-                navigator.replace(MainScreen())
+                if (state.needsOnboarding) {
+                    navigator.replace(OnboardingScreen())
+                } else {
+                    navigator.replace(MainScreen())
+                }
             }
         }
 

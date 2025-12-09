@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Check
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -23,6 +24,8 @@ import com.rexosphere.leoconnect.presentation.tabs.ProfileScreenModel
 import com.rexosphere.leoconnect.presentation.tabs.ProfileUiState
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 class EditProfileScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -30,21 +33,48 @@ class EditProfileScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = koinScreenModel<ProfileScreenModel>()
+        val repository: com.rexosphere.leoconnect.domain.repository.LeoRepository = koinInject()
         val state by screenModel.uiState.collectAsState()
+        val scope = rememberCoroutineScope()
 
-        var displayName by remember { mutableStateOf("") }
         var bio by remember { mutableStateOf("") }
         var leoId by remember { mutableStateOf("") }
-        var club by remember { mutableStateOf("") }
-        var district by remember { mutableStateOf("") }
+        var selectedClubId by remember { mutableStateOf<String?>(null) }
+        var selectedDistrict by remember { mutableStateOf<String?>(null) }
+        var districts by remember { mutableStateOf<List<String>>(emptyList()) }
+        var clubs by remember { mutableStateOf<List<com.rexosphere.leoconnect.domain.model.Club>>(emptyList()) }
+        var showDistrictDialog by remember { mutableStateOf(false) }
+        var showClubDialog by remember { mutableStateOf(false) }
+        var isSaving by remember { mutableStateOf(false) }
 
         // Initialize with current profile data
         LaunchedEffect(state) {
             if (state is ProfileUiState.Success) {
                 val profile = (state as ProfileUiState.Success).profile
-                displayName = profile.displayName
+                bio = profile.bio ?: ""
                 leoId = profile.leoId ?: ""
-                // Initialize other fields as needed
+                selectedClubId = profile.assignedClubId
+                isSaving = false
+            } else if (state is ProfileUiState.Loading) {
+                isSaving = true
+            } else if (state is ProfileUiState.Error) {
+                isSaving = false
+            }
+        }
+
+        // Load districts
+        LaunchedEffect(Unit) {
+            repository.getDistricts().onSuccess {
+                districts = it
+            }
+        }
+
+        // Load clubs when district is selected
+        LaunchedEffect(selectedDistrict) {
+            selectedDistrict?.let { district ->
+                repository.getClubsByDistrict(district).onSuccess {
+                    clubs = it
+                }
             }
         }
 
@@ -58,11 +88,24 @@ class EditProfileScreen : Screen {
                         }
                     },
                     actions = {
-                        TextButton(onClick = {
-                            // TODO: Save profile changes
-                            navigator.pop()
-                        }) {
-                            Text("Save")
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    screenModel.updateProfile(
+                                        leoId = if (leoId.isNotBlank()) leoId else null,
+                                        assignedClubId = selectedClubId,
+                                        bio = if (bio.isNotBlank()) bio else null
+                                    )
+                                    navigator.pop()
+                                }
+                            },
+                            enabled = !isSaving
+                        ) {
+                            if (isSaving) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            } else {
+                                Text("Save")
+                            }
                         }
                     }
                 )
@@ -119,21 +162,11 @@ class EditProfileScreen : Screen {
 
                 item {
                     Text(
-                        text = "Basic Information",
+                        text = "Bio",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = displayName,
-                        onValueChange = { displayName = it },
-                        label = { Text("Display Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
                     )
                 }
 
@@ -171,39 +204,138 @@ class EditProfileScreen : Screen {
                 }
 
                 item {
-                    OutlinedTextField(
-                        value = club,
-                        onValueChange = { club = it },
-                        label = { Text("Leo Club") },
-                        placeholder = { Text("Your Leo Club name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                    OutlinedButton(
+                        onClick = { showDistrictDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = selectedDistrict ?: "Select District",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
                 item {
-                    OutlinedTextField(
-                        value = district,
-                        onValueChange = { district = it },
-                        label = { Text("District") },
-                        placeholder = { Text("Your Leo District") },
+                    OutlinedButton(
+                        onClick = { showClubDialog = true },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                        enabled = selectedDistrict != null && clubs.isNotEmpty()
+                    ) {
+                        Text(
+                            text = clubs.find { it.clubId == selectedClubId }?.name ?: "Select Club",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
                 item {
                     Button(
                         onClick = {
-                            // TODO: Save changes
-                            navigator.pop()
+                            scope.launch {
+                                screenModel.updateProfile(
+                                    leoId = if (leoId.isNotBlank()) leoId else null,
+                                    assignedClubId = selectedClubId,
+                                    bio = if (bio.isNotBlank()) bio else null
+                                )
+                                navigator.pop()
+                            }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isSaving
                     ) {
-                        Text("Save Changes")
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Save Changes")
+                        }
                     }
                 }
             }
+        }
+
+        // District Selection Dialog
+        if (showDistrictDialog) {
+            AlertDialog(
+                onDismissRequest = { showDistrictDialog = false },
+                title = { Text("Select District") },
+                text = {
+                    LazyColumn {
+                        items(districts.size) { index ->
+                            val district = districts[index]
+                            TextButton(
+                                onClick = {
+                                    selectedDistrict = district
+                                    showDistrictDialog = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = district,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (selectedDistrict == district) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDistrictDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // Club Selection Dialog
+        if (showClubDialog && selectedDistrict != null) {
+            AlertDialog(
+                onDismissRequest = { showClubDialog = false },
+                title = { Text("Select Club") },
+                text = {
+                    if (clubs.isEmpty()) {
+                        Text("No clubs available in this district")
+                    } else {
+                        LazyColumn {
+                            items(clubs.size) { index ->
+                                val club = clubs[index]
+                                TextButton(
+                                    onClick = {
+                                        selectedClubId = club.clubId
+                                        showClubDialog = false
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = club.name,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (selectedClubId == club.clubId) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showClubDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

@@ -22,6 +22,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.components.ImpactTracker
 import com.rexosphere.leoconnect.presentation.settings.SettingsScreen
 import io.kamel.image.KamelImage
@@ -63,6 +64,7 @@ class ProfileScreen : Screen {
         val screenModel = koinScreenModel<ProfileScreenModel>()
         val state by screenModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val bottomBarPadding = LocalBottomBarPadding.current
 
         when (val uiState = state) {
             is ProfileUiState.Loading -> {
@@ -87,7 +89,7 @@ class ProfileScreen : Screen {
                 val profile = uiState.profile
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 100.dp)
+                    contentPadding = PaddingValues(bottom = bottomBarPadding + 16.dp)
                 ) {
                     item { ProfileHeader(profile, onSettingsClick = { navigator.push(SettingsScreen()) }) }
                     item { Spacer(Modifier.height(32.dp)) }

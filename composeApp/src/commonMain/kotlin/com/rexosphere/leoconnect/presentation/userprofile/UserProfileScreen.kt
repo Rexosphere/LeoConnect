@@ -1,6 +1,7 @@
 package com.rexosphere.leoconnect.presentation.userprofile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,6 +47,14 @@ data class UserProfileScreen(val userId: String) : Screen {
         val state by screenModel.uiState.collectAsState()
         var isRefreshing by remember { mutableStateOf(false) }
 
+        // Dialog states
+        var showFollowersDialog by remember { mutableStateOf(false) }
+        var showFollowingDialog by remember { mutableStateOf(false) }
+        val followers by screenModel.followers.collectAsState()
+        val following by screenModel.following.collectAsState()
+        val isLoadingFollowers by screenModel.isLoadingFollowers.collectAsState()
+        val isLoadingFollowing by screenModel.isLoadingFollowing.collectAsState()
+
         LaunchedEffect(userId) {
             screenModel.loadUser(userId)
         }
@@ -53,6 +62,19 @@ data class UserProfileScreen(val userId: String) : Screen {
         LaunchedEffect(state) {
             if (state !is UserProfileUiState.Loading) {
                 isRefreshing = false
+            }
+        }
+
+        // Show dialogs when data is loaded
+        LaunchedEffect(followers) {
+            if (followers.isNotEmpty() && !isLoadingFollowers) {
+                showFollowersDialog = true
+            }
+        }
+
+        LaunchedEffect(following) {
+            if (following.isNotEmpty() && !isLoadingFollowing) {
+                showFollowingDialog = true
             }
         }
 
@@ -146,6 +168,40 @@ data class UserProfileScreen(val userId: String) : Screen {
                 }
             }
         }
+
+        // Followers Dialog
+        if (showFollowersDialog) {
+            com.rexosphere.leoconnect.presentation.components.FollowersFollowingDialog(
+                title = "Followers",
+                users = followers,
+                isLoading = isLoadingFollowers,
+                onDismiss = { showFollowersDialog = false },
+                onUserClick = { userId ->
+                    showFollowersDialog = false
+                    navigator.push(UserProfileScreen(userId))
+                },
+                onFollowClick = { userId, isFollowing ->
+                    screenModel.toggleFollowInDialog(userId, isFollowing)
+                }
+            )
+        }
+
+        // Following Dialog
+        if (showFollowingDialog) {
+            com.rexosphere.leoconnect.presentation.components.FollowersFollowingDialog(
+                title = "Following",
+                users = following,
+                isLoading = isLoadingFollowing,
+                onDismiss = { showFollowingDialog = false },
+                onUserClick = { userId ->
+                    showFollowingDialog = false
+                    navigator.push(UserProfileScreen(userId))
+                },
+                onFollowClick = { userId, isFollowing ->
+                    screenModel.toggleFollowInDialog(userId, isFollowing)
+                }
+            )
+        }
     }
 }
 
@@ -196,9 +252,17 @@ private fun OtherUserHeader(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem(count = profile.postsCount ?: 0, label = "Posts")
-                        StatItem(count = profile.followersCount ?: 0, label = "Followers")
-                        StatItem(count = profile.followingCount ?: 0, label = "Following")
+                        StatItem(count = profile.postsCount ?: 0, label = "Posts", onClick = null)
+                        StatItem(
+                            count = profile.followersCount ?: 0,
+                            label = "Followers",
+                            onClick = { screenModel.loadFollowers() }
+                        )
+                        StatItem(
+                            count = profile.followingCount ?: 0,
+                            label = "Following",
+                            onClick = { screenModel.loadFollowing() }
+                        )
                     }
                 }
             }
@@ -278,7 +342,7 @@ private fun OtherUserHeader(
                     )
                 ) {
                     Text(
-                        text = if (isFollowing) "Following" else "Follower",
+                        text = if (isFollowing) "Following" else "Follow",
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -308,8 +372,17 @@ private fun OtherUserHeader(
 }
 
 @Composable
-private fun StatItem(count: Int, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun StatItem(count: Int, label: String, onClick: (() -> Unit)?) {
+    val modifier = if (onClick != null) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(8.dp)
+    ) {
         Text(
             text = count.toString(),
             style = MaterialTheme.typography.titleLarge,

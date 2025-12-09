@@ -43,7 +43,7 @@ data class ClubDetailScreen(val club: Club) : Screen {
         val state by screenModel.uiState.collectAsState()
 
         LaunchedEffect(club.id) {
-            screenModel.loadClubPosts(club.id)
+            screenModel.loadClubPosts(club.id, club)
         }
 
         Scaffold(
@@ -66,7 +66,16 @@ data class ClubDetailScreen(val club: Club) : Screen {
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                item { ClubHeader(club = club) }
+                // Show club header from state if available, otherwise use initial club
+                item {
+                    val currentState = state
+                    val currentClub = if (currentState is ClubDetailUiState.Success) {
+                        currentState.club
+                    } else {
+                        club
+                    }
+                    ClubHeader(club = currentClub, screenModel = screenModel)
+                }
                 item { Spacer(Modifier.height(24.dp)) }
 
                 when (val uiState = state) {
@@ -118,7 +127,7 @@ data class ClubDetailScreen(val club: Club) : Screen {
 }
 
 @Composable
-private fun ClubHeader(club: Club) {
+private fun ClubHeader(club: Club, screenModel: ClubDetailScreenModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Top border
         Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
@@ -210,15 +219,20 @@ private fun ClubHeader(club: Club) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                val isFollowing = club.isFollowing
+
                 Button(
-                    onClick = { /* Follow */ },
+                    onClick = { screenModel.toggleFollow() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = if (isFollowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                        contentColor = if (isFollowing) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Follow", fontWeight = FontWeight.Medium)
+                    Text(
+                        text = if (isFollowing) "Following" else "Follow",
+                        fontWeight = FontWeight.Medium
+                    )
                 }
 
                 OutlinedButton(

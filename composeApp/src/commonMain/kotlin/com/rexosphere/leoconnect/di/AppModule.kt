@@ -44,6 +44,7 @@ val commonModule = module {
 
     // ViewModels
     factory { LoginScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.auth.OnboardingScreenModel(get()) }
     factory { HomeScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.tabs.ClubsScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.tabs.ProfileScreenModel(get()) }

@@ -83,6 +83,9 @@ kotlin {
             implementation(libs.kamel.image)
             implementation(libs.kamel.image.default)
 
+            // Haze (Glassmorphic effects)
+            implementation(libs.haze.materials)
+
             // Firebase
             implementation(libs.firebase.auth)
             implementation(libs.firebase.common)

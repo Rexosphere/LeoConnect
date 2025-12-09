@@ -118,11 +118,75 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): Result<UserProfile> {
+    override suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): Result<UserProfile> {
         return try {
-            val profile = remoteDataSource.updateUserProfile(leoId, assignedClubId)
+            val profile = remoteDataSource.updateUserProfile(leoId, assignedClubId, bio)
             _authState.value = profile
             Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun completeOnboarding(leoId: String?, assignedClubId: String?): Result<UserProfile> {
+        return try {
+            val profile = remoteDataSource.completeOnboarding(leoId, assignedClubId)
+            _authState.value = profile
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun followUser(userId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.followUser(userId)
+            Result.success(response.isFollowing)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unfollowUser(userId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.unfollowUser(userId)
+            Result.success(response.isFollowing)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun followClub(clubId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.followClub(clubId)
+            Result.success(response.isFollowing)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unfollowClub(clubId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.unfollowClub(clubId)
+            Result.success(response.isFollowing)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserFollowers(userId: String, limit: Int, offset: Int): Result<com.rexosphere.leoconnect.data.source.remote.FollowersResponse> {
+        return try {
+            val response = remoteDataSource.getUserFollowers(userId, limit, offset)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserFollowing(userId: String, limit: Int, offset: Int): Result<com.rexosphere.leoconnect.data.source.remote.FollowersResponse> {
+        return try {
+            val response = remoteDataSource.getUserFollowing(userId, limit, offset)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }

@@ -89,7 +89,7 @@ class KtorRemoteDataSource(
         }.body()
     }
 
-    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): UserProfile {
+    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): UserProfile {
         return client.patch("$baseUrl/users/me") {
             contentType(ContentType.Application.Json)
             getToken()?.let { token ->
@@ -97,10 +97,86 @@ class KtorRemoteDataSource(
                     append(HttpHeaders.Authorization, "Bearer $token")
                 }
             }
-            setBody(mapOf(
-                "leoId" to leoId,
-                "assignedClubId" to assignedClubId
-            ))
+            setBody(buildMap {
+                leoId?.let { put("leoId", it) }
+                assignedClubId?.let { put("assignedClubId", it) }
+                bio?.let { put("bio", it) }
+            })
+        }.body()
+    }
+
+    suspend fun completeOnboarding(leoId: String?, assignedClubId: String?): UserProfile {
+        return client.post("$baseUrl/users/me/quick-start") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(buildMap {
+                leoId?.let { put("leoId", it) }
+                assignedClubId?.let { put("assignedClubId", it) }
+            })
+        }.body()
+    }
+
+    suspend fun followUser(userId: String): FollowResponse {
+        return client.post("$baseUrl/users/$userId/follow") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun unfollowUser(userId: String): FollowResponse {
+        return client.delete("$baseUrl/users/$userId/follow") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun followClub(clubId: String): FollowResponse {
+        return client.post("$baseUrl/clubs/$clubId/follow") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun unfollowClub(clubId: String): FollowResponse {
+        return client.delete("$baseUrl/clubs/$clubId/follow") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getUserFollowers(userId: String, limit: Int = 50, offset: Int = 0): FollowersResponse {
+        return client.get("$baseUrl/users/$userId/followers?limit=$limit&offset=$offset") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getUserFollowing(userId: String, limit: Int = 50, offset: Int = 0): FollowersResponse {
+        return client.get("$baseUrl/users/$userId/following?limit=$limit&offset=$offset") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
         }.body()
     }
 
@@ -261,5 +337,28 @@ data class UserSearchResult(
     val userId: String,
     val displayName: String,
     val photoUrl: String?
+)
+
+@kotlinx.serialization.Serializable
+data class FollowResponse(
+    val isFollowing: Boolean,
+    val followersCount: Int? = null
+)
+
+@kotlinx.serialization.Serializable
+data class FollowerUser(
+    val uid: String,
+    val displayName: String,
+    val photoURL: String? = null,
+    val leoId: String? = null,
+    val isFollowing: Boolean? = false,
+    val isMutualFollow: Boolean? = false
+)
+
+@kotlinx.serialization.Serializable
+data class FollowersResponse(
+    val followers: List<FollowerUser>,
+    val total: Int,
+    val hasMore: Boolean
 )
 

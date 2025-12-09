@@ -4,6 +4,8 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.domain.repository.LeoRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed class CreatePostUiState {
@@ -18,7 +20,22 @@ class CreatePostScreenModel(
 ) : StateScreenModel<CreatePostUiState>(CreatePostUiState.Idle) {
     val uiState = mutableState
 
-    fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?) {
+    private val _userClubId = MutableStateFlow<String?>(null)
+    val userClubId = _userClubId.asStateFlow()
+
+    init {
+        loadUserProfile()
+    }
+
+    private fun loadUserProfile() {
+        screenModelScope.launch {
+            repository.getUserProfile().onSuccess { profile ->
+                _userClubId.value = profile.assignedClubId
+            }
+        }
+    }
+
+    fun createPost(content: String, imageBytes: String?) {
         if (content.isBlank()) {
             mutableState.value = CreatePostUiState.Error("Post content cannot be empty")
             return
@@ -26,7 +43,8 @@ class CreatePostScreenModel(
 
         screenModelScope.launch {
             mutableState.value = CreatePostUiState.Loading
-            repository.createPost(content, imageBytes, clubId, clubName)
+            // Use the user's assigned club ID if available
+            repository.createPost(content, imageBytes, _userClubId.value, null)
                 .onSuccess { post ->
                     mutableState.value = CreatePostUiState.Success(post)
                 }

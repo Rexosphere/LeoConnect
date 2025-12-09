@@ -2,6 +2,7 @@ package com.rexosphere.leoconnect.presentation.auth
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.domain.repository.LeoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +13,8 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val isLoading: Boolean = false,
     val isSignedIn: Boolean = false,
+    val needsOnboarding: Boolean = false,
+    val userProfile: UserProfile? = null,
     val error: String? = null
 )
 
@@ -23,8 +26,29 @@ class LoginScreenModel(
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
     init {
-        // Check if user is already signed in
-        _state.update { it.copy(isSignedIn = repository.isSignedIn()) }
+        checkAuthStatus()
+    }
+
+    private fun checkAuthStatus() {
+        screenModelScope.launch {
+            if (repository.isSignedIn()) {
+                _state.update { it.copy(isLoading = true) }
+                repository.getUserProfile()
+                    .onSuccess { profile ->
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSignedIn = true,
+                                needsOnboarding = !profile.onboardingCompleted,
+                                userProfile = profile
+                            )
+                        }
+                    }
+                    .onFailure {
+                        _state.update { it.copy(isLoading = false, isSignedIn = false) }
+                    }
+            }
+        }
     }
 
     fun signInWithGoogle() {
@@ -37,6 +61,8 @@ class LoginScreenModel(
                         it.copy(
                             isLoading = false,
                             isSignedIn = true,
+                            needsOnboarding = !userProfile.onboardingCompleted,
+                            userProfile = userProfile,
                             error = null
                         )
                     }

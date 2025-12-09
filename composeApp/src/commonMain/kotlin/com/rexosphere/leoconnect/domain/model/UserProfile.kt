@@ -13,6 +13,7 @@ data class UserProfile(
     val isWebmaster: Boolean = false,
     val assignedClubId: String? = null,
     val followingClubs: List<String> = emptyList(),
+    val onboardingCompleted: Boolean = false,
     val postsCount: Int? = 0,
     val followersCount: Int? = 0,
     val followingCount: Int? = 0,

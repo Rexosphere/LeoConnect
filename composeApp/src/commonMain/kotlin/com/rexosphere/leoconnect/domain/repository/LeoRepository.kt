@@ -59,10 +59,42 @@ interface LeoRepository {
     /**
      * Update user profile
      */
+    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): Result<UserProfile>
+
     /**
-     * Update user profile
+     * Complete onboarding for first-time user
      */
-    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?): Result<UserProfile>
+    suspend fun completeOnboarding(leoId: String?, assignedClubId: String?): Result<UserProfile>
+
+    /**
+     * Follow a user
+     */
+    suspend fun followUser(userId: String): Result<Boolean>
+
+    /**
+     * Unfollow a user
+     */
+    suspend fun unfollowUser(userId: String): Result<Boolean>
+
+    /**
+     * Follow a club
+     */
+    suspend fun followClub(clubId: String): Result<Boolean>
+
+    /**
+     * Unfollow a club
+     */
+    suspend fun unfollowClub(clubId: String): Result<Boolean>
+
+    /**
+     * Get followers of a user
+     */
+    suspend fun getUserFollowers(userId: String, limit: Int = 50, offset: Int = 0): Result<com.rexosphere.leoconnect.data.source.remote.FollowersResponse>
+
+    /**
+     * Get users that a user is following
+     */
+    suspend fun getUserFollowing(userId: String, limit: Int = 50, offset: Int = 0): Result<com.rexosphere.leoconnect.data.source.remote.FollowersResponse>
 
     /**
      * Get comments for a post

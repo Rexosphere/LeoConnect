@@ -1,22 +1,71 @@
 package com.rexosphere.leoconnect.presentation.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.hazeChild
 
 @Composable
-fun BottomBar() {
+fun BottomBar(hazeState: HazeState) {
+    // 1. Define the shape once to reuse for clipping, haze, and border
+    val barShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+
+    // 2. Capture colors for the border gradient
+    val borderBrush = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Top highlight (Light edge)
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f) // Fades out at bottom
+        )
+    )
+
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        // 3. CRITICAL: Remove default M3 tonal elevation to prevent opaque overlay
+        tonalElevation = 0.dp,
+        modifier = Modifier
+            // 4. Add a soft shadow for depth
+            .shadow(
+                elevation = 12.dp,
+                shape = barShape,
+                spotColor = Color.Black.copy(alpha = 0.15f),
+                ambientColor = Color.Black.copy(alpha = 0.15f)
+            )
+            // 5. Clip explicitly before haze
+            .clip(barShape)
+            .hazeChild(
+                state = hazeState,
+                shape = barShape,
+                style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+            )
+            // 6. Subtle background tint for readability
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(
+                width = 1.dp,
+                brush = borderBrush,
+                shape = barShape
+            )
     ) {
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.HomeTab)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ClubsTab)
@@ -28,29 +77,35 @@ fun BottomBar() {
 @Composable
 private fun RowScope.TabNavigationItem(tab: Tab) {
     val tabNavigator = LocalTabNavigator.current
+    val selected = tabNavigator.current == tab
 
     NavigationBarItem(
-        selected = tabNavigator.current == tab,
+        selected = selected,
         onClick = { tabNavigator.current = tab },
         icon = {
             tab.options.icon?.let { icon ->
                 Icon(
                     painter = icon,
-                    contentDescription = tab.options.title
+                    contentDescription = tab.options.title,
+                    // Optional: Scale effect on selection
+                    modifier = Modifier.scale(if (selected) 1.1f else 1.0f)
                 )
             }
         },
         label = {
             Text(
-                text = tab.options.title
+                text = tab.options.title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
             )
         },
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.primary,
             selectedTextColor = MaterialTheme.colorScheme.primary,
-            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            // Keep indicator transparent for the clean glass look
+            indicatorColor = Color.Transparent,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
     )
 }

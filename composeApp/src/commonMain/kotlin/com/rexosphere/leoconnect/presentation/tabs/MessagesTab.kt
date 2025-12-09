@@ -2,6 +2,7 @@ package com.rexosphere.leoconnect.presentation.tabs
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -32,10 +35,15 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Conversation
 import com.rexosphere.leoconnect.domain.model.UserProfile
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.chat.ChatScreen
 import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.icons.ChatBubbleOvalLeftEllipsis
 import com.rexosphere.leoconnect.presentation.icons.User
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.HazeMaterials
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -83,6 +91,8 @@ private fun MessagesTab(
     onStartNewConversation: () -> Unit
 ) {
     var isRefreshing by remember { mutableStateOf(false) }
+    val bottomBarPadding = LocalBottomBarPadding.current
+    val hazeState = remember { HazeState() }
 
     LaunchedEffect(uiState) {
         if (uiState !is MessagesUiState.Loading) {
@@ -94,94 +104,136 @@ private fun MessagesTab(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onStartNewConversation,
-                containerColor = MaterialTheme.colorScheme.primary
+                shape = CircleShape,
+                containerColor = Color.Transparent, // Keep transparent
+                // 1. Remove default FAB shadow (fixes the hexagon/weird artifacts)
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 0.dp
+                ),
+                modifier = Modifier
+                    .padding(bottom = bottomBarPadding)
+                    // 2. Add manual shadow with specific shape
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = CircleShape,
+                        spotColor = Color.Black.copy(alpha = 0.25f),
+                        ambientColor = Color.Black.copy(alpha = 0.25f)
+                    )
+                    // 3. Ensure the clip happens before the haze
+                    .clip(CircleShape)
+                    .hazeChild(
+                        state = hazeState,
+                        shape = CircleShape, // 4. CRITICAL: Tells haze to render as a circle, not a square
+                        style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+                    )
+                    // 5. Add a subtle background tint for better visibility/glass feel
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+                    .border(
+                        width = 1.dp,
+                        // 6. Diagonal gradient simulates light hitting the top-left edge
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.4f), // Top-left highlight
+                                Color.White.copy(alpha = 0.1f), // Middle
+                                Color.Transparent               // Bottom-right shadow
+                            )
+                        ),
+                        shape = CircleShape
+                    )
             ) {
                 Icon(
-                    com.rexosphere.leoconnect.presentation.icons.Plus,
-                    contentDescription = "Start New Conversation"
+                    imageVector = com.rexosphere.leoconnect.presentation.icons.Plus,
+                    contentDescription = "Start New Conversation",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-        }
+        },
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .haze(state = hazeState)
         ) {
-        when (val state = uiState) {
-            is MessagesUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            is MessagesUiState.Success -> {
-                if (state.conversations.isEmpty()) {
-                    EmptyMessagesState()
-                } else {
-                    PullToRefreshContainer(
-                        isRefreshing = isRefreshing,
-                        onRefresh = {
-                            isRefreshing = true
-                            screenModel.loadConversations()
-                        },
-                        modifier = Modifier.fillMaxSize()
+            when (val state = uiState) {
+                is MessagesUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is MessagesUiState.Success -> {
+                    if (state.conversations.isEmpty()) {
+                        EmptyMessagesState()
+                    } else {
+                        PullToRefreshContainer(
+                            isRefreshing = isRefreshing,
+                            onRefresh = {
+                                isRefreshing = true
+                                screenModel.loadConversations()
+                            },
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            items(state.conversations, key = { it.userId }) { conversation ->
-                                ConversationItem(
-                                    conversation = conversation,
-                                    onClick = {
-                                        // Create a UserProfile from the conversation data
-                                        val userProfile = UserProfile(
-                                            uid = conversation.userId,
-                                            email = "",
-                                            displayName = conversation.displayName,
-                                            photoURL = conversation.photoUrl,
-                                            leoId = null,
-                                            assignedClubId = null
-                                        )
-                                        navigator.push(ChatScreen(userProfile))
-                                    },
-                                    onDelete = {
-                                        screenModel.deleteConversation(conversation.userId)
-                                    }
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(
+                                    top = 8.dp,
+                                    bottom = bottomBarPadding + 8.dp
                                 )
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
+                            ) {
+                                items(state.conversations, key = { it.userId }) { conversation ->
+                                    ConversationItem(
+                                        conversation = conversation,
+                                        onClick = {
+                                            // Create a UserProfile from the conversation data
+                                            val userProfile = UserProfile(
+                                                uid = conversation.userId,
+                                                email = "",
+                                                displayName = conversation.displayName,
+                                                photoURL = conversation.photoUrl,
+                                                leoId = null,
+                                                assignedClubId = null
+                                            )
+                                            navigator.push(ChatScreen(userProfile))
+                                        },
+                                        onDelete = {
+                                            screenModel.deleteConversation(conversation.userId)
+                                        }
+                                    )
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                is MessagesUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = state.message,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = { screenModel.loadConversations() }) {
+                                Text("Retry")
                             }
                         }
                     }
                 }
             }
-
-            is MessagesUiState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.message,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { screenModel.loadConversations() }) {
-                            Text("Retry")
-                        }
-                    }
-                }
-            }
         }
-    }
     }
 }
 
