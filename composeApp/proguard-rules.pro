@@ -49,6 +49,22 @@
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**
 
+# Firebase Cloud Messaging (for notifications)
+-keep class com.google.firebase.messaging.** { *; }
+-keep class com.google.firebase.iid.** { *; }
+
+# KMPNotifier
+-keep class com.mmk.kmpnotifier.** { *; }
+-keep interface com.mmk.kmpnotifier.** { *; }
+-dontwarn com.mmk.kmpnotifier.**
+
+# Keep notification data models
+-keep class com.rexosphere.leoconnect.data.model.Notification { *; }
+-keep class com.rexosphere.leoconnect.data.model.NotificationListResponse { *; }
+-keep class com.rexosphere.leoconnect.data.model.NotificationPreferences { *; }
+-keep class com.rexosphere.leoconnect.data.model.NotificationResponse { *; }
+-keep class com.rexosphere.leoconnect.data.model.NotificationTokenRequest { *; }
+
 # Voyager Navigator
 -keep class cafe.adriel.voyager.** { *; }
 
