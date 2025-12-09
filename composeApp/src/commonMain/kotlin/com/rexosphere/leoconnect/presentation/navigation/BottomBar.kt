@@ -2,16 +2,22 @@ package com.rexosphere.leoconnect.presentation.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -20,11 +26,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
+import com.rexosphere.leoconnect.presentation.createpost.CreatePostScreen
+import com.rexosphere.leoconnect.presentation.icons.Plus
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.materials.HazeMaterials
 
 @Composable
 fun BottomBar(hazeState: HazeState) {
@@ -69,6 +79,7 @@ fun BottomBar(hazeState: HazeState) {
     ) {
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.HomeTab)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ClubsTab)
+        CreatePostNavItem(hazeState = hazeState)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.MessagesTabNavigator)
         TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ProfileTab)
     }
@@ -108,4 +119,54 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
     )
+}
+
+@Composable
+private fun RowScope.CreatePostNavItem(hazeState: HazeState) {
+    val navigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
+
+    Box(
+        modifier = Modifier
+            .weight(1f),
+        contentAlignment = Alignment.Center
+    ) {
+        FloatingActionButton(
+            onClick = { navigator.push(CreatePostScreen()) },
+            shape = CircleShape,
+            containerColor = Color.Transparent,
+            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
+            modifier = Modifier
+                .size(56.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = CircleShape,
+                    spotColor = Color.Black.copy(alpha = 0.25f),
+                    ambientColor = Color.Black.copy(alpha = 0.25f)
+                )
+                .clip(CircleShape)
+                .hazeChild(
+                    state = hazeState,
+                    shape = CircleShape,
+                    style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+                )
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.4f),
+                            Color.White.copy(alpha = 0.1f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        ) {
+            Icon(
+                imageVector = Plus,
+                contentDescription = "Create Post",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }

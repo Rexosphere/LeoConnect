@@ -6,16 +6,32 @@ import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import com.rexosphere.leoconnect.domain.repository.LeoRepository
 import com.rexosphere.leoconnect.domain.service.AuthService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class LeoRepositoryImpl(
     private val remoteDataSource: KtorRemoteDataSource,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val localDataSource: com.rexosphere.leoconnect.data.source.local.LocalDataSource
 ) : LeoRepository {
 
     private val _authState = MutableStateFlow<UserProfile?>(null)
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
+        // Load cached user profile on init
+        repositoryScope.launch {
+            val cachedProfile = localDataSource.getUserProfile()
+            if (cachedProfile != null) {
+                _authState.value = cachedProfile
+            }
+        }
+    }
 
     override suspend fun googleSignIn(): Result<UserProfile> {
         return try {
@@ -30,6 +46,11 @@ class LeoRepositoryImpl(
             // 2. Send Firebase token to backend and get user profile
             val profile = remoteDataSource.googleSignIn(firebaseToken)
             _authState.value = profile
+
+            // 3. Cache profile and set logged in state
+            localDataSource.saveUserProfile(profile)
+            localDataSource.setLoggedIn(true)
+
             Result.success(profile)
         } catch (e: Exception) {
             Result.failure(e)
@@ -39,6 +60,8 @@ class LeoRepositoryImpl(
     override suspend fun signOut() {
         authService.signOut()
         _authState.value = null
+        // Clear all cached data
+        localDataSource.clearAll()
     }
 
     override fun getAuthState(): Flow<UserProfile?> {
@@ -46,7 +69,8 @@ class LeoRepositoryImpl(
     }
 
     override fun isSignedIn(): Boolean {
-        return authService.isSignedIn()
+        // Check both auth service and local cache
+        return authService.isSignedIn() || _authState.value != null
     }
 
     override suspend fun getHomeFeed(limit: Int): Result<List<Post>> {
@@ -100,6 +124,8 @@ class LeoRepositoryImpl(
             val uid = authService.getCurrentUserId()
             val profile = remoteDataSource.getUserProfile(uid)
             _authState.value = profile
+            // Cache the profile
+            localDataSource.saveUserProfile(profile)
             Result.success(profile)
         } catch (e: Exception) {
             // If fetching profile fails (e.g. 404 User not found), try to sync/create user
@@ -108,6 +134,8 @@ class LeoRepositoryImpl(
                 if (token != null) {
                     val profile = remoteDataSource.googleSignIn(token)
                     _authState.value = profile
+                    // Cache the profile
+                    localDataSource.saveUserProfile(profile)
                     return Result.success(profile)
                 }
             } catch (syncError: Exception) {
@@ -122,6 +150,8 @@ class LeoRepositoryImpl(
         return try {
             val profile = remoteDataSource.updateUserProfile(leoId, assignedClubId, bio)
             _authState.value = profile
+            // Cache the updated profile
+            localDataSource.saveUserProfile(profile)
             Result.success(profile)
         } catch (e: Exception) {
             Result.failure(e)
@@ -132,6 +162,8 @@ class LeoRepositoryImpl(
         return try {
             val profile = remoteDataSource.completeOnboarding(leoId, assignedClubId)
             _authState.value = profile
+            // Cache the profile after onboarding
+            localDataSource.saveUserProfile(profile)
             Result.success(profile)
         } catch (e: Exception) {
             Result.failure(e)

@@ -40,7 +40,7 @@ val commonModule = module {
             getToken = { get<AuthService>().getCurrentToken() }
         )
     }
-    single<LeoRepository> { LeoRepositoryImpl(get(), get()) }
+    single<LeoRepository> { LeoRepositoryImpl(get(), get(), get()) }
 
     // ViewModels
     factory { LoginScreenModel(get()) }

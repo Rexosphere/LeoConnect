@@ -14,6 +14,12 @@ fun androidPlatformModule(context: Context): Module = module {
             firebaseAuth = get()
         )
     }
+    single<com.rexosphere.leoconnect.data.source.local.LeoPreferences> {
+        com.rexosphere.leoconnect.data.source.local.AndroidPreferences(context.applicationContext)
+    }
+    single<com.rexosphere.leoconnect.data.source.local.LocalDataSource> {
+        com.rexosphere.leoconnect.data.source.local.PreferencesDataSource(get())
+    }
 }
 
 actual val platformModule: Module

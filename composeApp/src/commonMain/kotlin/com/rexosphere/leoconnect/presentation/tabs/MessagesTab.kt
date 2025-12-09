@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -39,7 +41,9 @@ import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.chat.ChatScreen
 import com.rexosphere.leoconnect.presentation.components.PullToRefreshContainer
 import com.rexosphere.leoconnect.presentation.icons.ChatBubbleOvalLeftEllipsis
+import com.rexosphere.leoconnect.presentation.icons.MagnifyingGlass
 import com.rexosphere.leoconnect.presentation.icons.User
+import com.rexosphere.leoconnect.presentation.search.SearchScreen
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
@@ -83,6 +87,7 @@ class MessagesScreen : Screen {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MessagesTab(
     screenModel: MessagesScreenModel,
@@ -101,6 +106,53 @@ private fun MessagesTab(
     }
 
     Scaffold(
+        topBar = {
+            // 1. Capture the color outside the draw scope
+            val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+
+            TopAppBar(
+                title = {
+                    Text(
+                        "Messages",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { navigator.push(SearchScreen()) }) {
+                        Icon(MagnifyingGlass, "Search")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .hazeChild(
+                        state = hazeState,
+                        style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+                    )
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.2f))
+                    .drawBehind {
+                        val strokeWidth = 1.dp.toPx()
+                        val y = size.height - strokeWidth
+
+                        drawLine(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    borderColor, // 2. Use the captured value here
+                                    Color.Transparent
+                                )
+                            ),
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onStartNewConversation,

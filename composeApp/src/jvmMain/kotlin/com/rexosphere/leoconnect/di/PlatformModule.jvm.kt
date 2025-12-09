@@ -18,4 +18,10 @@ private class JvmAuthService : AuthService {
 
 actual val platformModule: Module = module {
     single<AuthService> { JvmAuthService() }
+    single<com.rexosphere.leoconnect.data.source.local.LeoPreferences> {
+        com.rexosphere.leoconnect.data.source.local.JvmPreferences()
+    }
+    single<com.rexosphere.leoconnect.data.source.local.LocalDataSource> {
+        com.rexosphere.leoconnect.data.source.local.PreferencesDataSource(get())
+    }
 }

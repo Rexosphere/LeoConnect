@@ -110,54 +110,6 @@ class HomeScreen : Screen {
                         }
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { navigator.push(CreatePostScreen()) },
-                    shape = CircleShape,
-                    containerColor = Color.Transparent, // Keep transparent
-                    // 1. Remove default FAB shadow (fixes the hexagon/weird artifacts)
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp
-                    ),
-                    modifier = Modifier
-                        .padding(bottom = bottomBarPadding)
-                        // 2. Add manual shadow with specific shape
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = CircleShape,
-                            spotColor = Color.Black.copy(alpha = 0.25f),
-                            ambientColor = Color.Black.copy(alpha = 0.25f)
-                        )
-                        // 3. Ensure the clip happens before the haze
-                        .clip(CircleShape)
-                        .hazeChild(
-                            state = hazeState,
-                            shape = CircleShape, // 4. CRITICAL: Tells haze to render as a circle, not a square
-                            style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
-                        )
-                        // 5. Add a subtle background tint for better visibility/glass feel
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-                        .border(
-                            width = 1.dp,
-                            // 6. Diagonal gradient simulates light hitting the top-left edge
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = 0.4f), // Top-left highlight
-                                    Color.White.copy(alpha = 0.1f), // Middle
-                                    Color.Transparent               // Bottom-right shadow
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                ) {
-                    Icon(
-                        imageVector = com.rexosphere.leoconnect.presentation.icons.Plus,
-                        contentDescription = "Start New Conversation",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
             containerColor = Color.Transparent
         ) { padding ->
             Box(
