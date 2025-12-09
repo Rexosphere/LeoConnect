@@ -23,6 +23,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Comment
 import com.rexosphere.leoconnect.domain.model.Post
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.FilledHeart
 import com.rexosphere.leoconnect.presentation.icons.Heart
@@ -55,8 +56,9 @@ data class PostDetailScreen(val post: Post) : Screen {
                 isRefreshing = false
             }
         }
-
+        val bottomBarPadding = LocalBottomBarPadding.current
         Scaffold(
+            modifier = Modifier.padding(bottom = bottomBarPadding),
             topBar = {
                 CenterAlignedTopAppBar(
                     title = { Text("Post") },
