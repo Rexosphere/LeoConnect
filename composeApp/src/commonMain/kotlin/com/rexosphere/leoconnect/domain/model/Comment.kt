@@ -14,3 +14,9 @@ data class Comment(
     val likesCount: Int = 0,
     val isLikedByUser: Boolean = false
 )
+
+@Serializable
+data class CommentLikeResponse(
+    val isLikedByUser: Boolean,
+    val likesCount: Int
+)

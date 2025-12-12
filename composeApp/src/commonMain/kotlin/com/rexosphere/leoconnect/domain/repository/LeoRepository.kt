@@ -107,6 +107,11 @@ interface LeoRepository {
     suspend fun addComment(postId: String, content: String): Result<com.rexosphere.leoconnect.domain.model.Comment>
 
     /**
+     * Like/unlike a comment
+     */
+    suspend fun likeComment(commentId: String): Result<com.rexosphere.leoconnect.domain.model.CommentLikeResponse>
+
+    /**
      * Get posts for a specific club
      */
     suspend fun getClubPosts(clubId: String): Result<List<Post>>

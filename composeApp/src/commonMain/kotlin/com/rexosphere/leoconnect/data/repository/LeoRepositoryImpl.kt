@@ -242,6 +242,15 @@ class LeoRepositoryImpl(
         }
     }
 
+    override suspend fun likeComment(commentId: String): Result<com.rexosphere.leoconnect.domain.model.CommentLikeResponse> {
+        return try {
+            val response = remoteDataSource.likeComment(commentId)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getClubPosts(clubId: String): Result<List<Post>> {
         return try {
             val posts = remoteDataSource.getClubPosts(clubId)
