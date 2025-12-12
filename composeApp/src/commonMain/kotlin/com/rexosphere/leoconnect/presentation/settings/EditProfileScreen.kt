@@ -1,22 +1,49 @@
 package com.rexosphere.leoconnect.presentation.settings
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Check
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
+import com.rexosphere.leoconnect.presentation.components.Base64Image
 import com.rexosphere.leoconnect.presentation.icons.Camera
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.User
@@ -38,20 +65,37 @@ class EditProfileScreen : Screen {
         val scope = rememberCoroutineScope()
 
         var bio by remember { mutableStateOf("") }
+        var displayName by remember { mutableStateOf("") }
         var leoId by remember { mutableStateOf("") }
         var selectedClubId by remember { mutableStateOf<String?>(null) }
         var selectedDistrict by remember { mutableStateOf<String?>(null) }
+        var selectedPhotoBase64 by remember { mutableStateOf<String?>(null) }
         var districts by remember { mutableStateOf<List<String>>(emptyList()) }
-        var clubs by remember { mutableStateOf<List<com.rexosphere.leoconnect.domain.model.Club>>(emptyList()) }
+        var clubs by remember {
+            mutableStateOf<List<com.rexosphere.leoconnect.domain.model.Club>>(
+                emptyList()
+            )
+        }
         var showDistrictDialog by remember { mutableStateOf(false) }
         var showClubDialog by remember { mutableStateOf(false) }
         var isSaving by remember { mutableStateOf(false) }
+
+        // Image picker
+        val imagePicker = com.rexosphere.leoconnect.presentation.components.rememberImagePicker(
+            onImageSelected = { base64 ->
+                selectedPhotoBase64 = base64
+            },
+            onError = { error ->
+                // Handle error if needed
+            }
+        )
 
         // Initialize with current profile data
         LaunchedEffect(state) {
             if (state is ProfileUiState.Success) {
                 val profile = (state as ProfileUiState.Success).profile
                 bio = profile.bio ?: ""
+                displayName = profile.displayName
                 leoId = profile.leoId ?: ""
                 selectedClubId = profile.assignedClubId
                 isSaving = false
@@ -78,7 +122,10 @@ class EditProfileScreen : Screen {
             }
         }
 
+        val bottomBarPadding = LocalBottomBarPadding.current
+
         Scaffold(
+            modifier = Modifier.padding(bottom = bottomBarPadding),
             topBar = {
                 TopAppBar(
                     title = { Text("Edit Profile") },
@@ -92,11 +139,12 @@ class EditProfileScreen : Screen {
                             onClick = {
                                 scope.launch {
                                     screenModel.updateProfile(
+                                        displayName = if (displayName.isNotBlank()) displayName else null,
                                         leoId = if (leoId.isNotBlank()) leoId else null,
                                         assignedClubId = selectedClubId,
-                                        bio = if (bio.isNotBlank()) bio else null
+                                        bio = if (bio.isNotBlank()) bio else null,
+                                        photoBase64 = selectedPhotoBase64
                                     )
-                                    navigator.pop()
                                 }
                             },
                             enabled = !isSaving
@@ -122,7 +170,17 @@ class EditProfileScreen : Screen {
                 // Profile Photo Section
                 item {
                     Box(contentAlignment = Alignment.BottomEnd) {
-                        if (state is ProfileUiState.Success) {
+                        if (selectedPhotoBase64 != null) {
+                            // Show selected image
+                            Base64Image(
+                                base64String = selectedPhotoBase64!!,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else if (state is ProfileUiState.Success) {
                             val profile = (state as ProfileUiState.Success).profile
                             if (profile.photoURL != null) {
                                 KamelImage(
@@ -147,7 +205,7 @@ class EditProfileScreen : Screen {
                         }
 
                         FloatingActionButton(
-                            onClick = { /* TODO: Change photo */ },
+                            onClick = { imagePicker.launch() },
                             modifier = Modifier.size(40.dp),
                             containerColor = MaterialTheme.colorScheme.primary
                         ) {
@@ -158,6 +216,27 @@ class EditProfileScreen : Screen {
                             )
                         }
                     }
+                }
+
+                item {
+                    Text(
+                        text = "Personal Information",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = displayName,
+                        onValueChange = { displayName = it },
+                        label = { Text("Display Name") },
+                        placeholder = { Text("Your name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
                 }
 
                 item {
@@ -222,7 +301,8 @@ class EditProfileScreen : Screen {
                         enabled = selectedDistrict != null && clubs.isNotEmpty()
                     ) {
                         Text(
-                            text = clubs.find { it.clubId == selectedClubId }?.name ?: "Select Club",
+                            text = clubs.find { it.clubId == selectedClubId }?.name
+                                ?: "Select Club",
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -233,11 +313,12 @@ class EditProfileScreen : Screen {
                         onClick = {
                             scope.launch {
                                 screenModel.updateProfile(
+                                    displayName = if (displayName.isNotBlank()) displayName else null,
                                     leoId = if (leoId.isNotBlank()) leoId else null,
                                     assignedClubId = selectedClubId,
-                                    bio = if (bio.isNotBlank()) bio else null
+                                    bio = if (bio.isNotBlank()) bio else null,
+                                    photoBase64 = selectedPhotoBase64
                                 )
-                                navigator.pop()
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

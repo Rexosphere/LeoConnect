@@ -78,9 +78,9 @@ interface LeoRepository {
     suspend fun getUserProfile(): Result<UserProfile>
 
     /**
-     * Update user profile
+     * Update user profile information
      */
-    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): Result<UserProfile>
+    suspend fun updateUserProfile(displayName: String?, leoId: String?, assignedClubId: String?, bio: String?, photoBase64: String?): Result<UserProfile>
 
     /**
      * Complete onboarding for first-time user

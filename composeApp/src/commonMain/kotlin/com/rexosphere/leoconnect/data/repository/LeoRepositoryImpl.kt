@@ -154,9 +154,9 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): Result<UserProfile> {
+    override suspend fun updateUserProfile(displayName: String?, leoId: String?, assignedClubId: String?, bio: String?, photoBase64: String?): Result<UserProfile> {
         return try {
-            val profile = remoteDataSource.updateUserProfile(leoId, assignedClubId, bio)
+            val profile = remoteDataSource.updateUserProfile(displayName, leoId, assignedClubId, bio, photoBase64)
             _authState.value = profile
             // Cache the updated profile
             localDataSource.saveUserProfile(profile)

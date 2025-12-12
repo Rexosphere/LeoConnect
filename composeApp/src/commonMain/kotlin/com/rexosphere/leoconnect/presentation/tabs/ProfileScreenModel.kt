@@ -39,10 +39,10 @@ class ProfileScreenModel(
         }
     }
 
-    fun updateProfile(leoId: String?, assignedClubId: String?, bio: String?) {
+    fun updateProfile(displayName: String?, leoId: String?, assignedClubId: String?, bio: String?, photoBase64: String?) {
         screenModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            repository.updateUserProfile(leoId, assignedClubId, bio)
+            repository.updateUserProfile(displayName, leoId, assignedClubId, bio, photoBase64)
                 .onSuccess { profile ->
                     _uiState.value = ProfileUiState.Success(profile)
                 }

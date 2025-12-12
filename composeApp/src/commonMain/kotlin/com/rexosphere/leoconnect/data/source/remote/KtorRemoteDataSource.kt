@@ -109,7 +109,7 @@ class KtorRemoteDataSource(
         }.body()
     }
 
-    suspend fun updateUserProfile(leoId: String?, assignedClubId: String?, bio: String?): UserProfile {
+    suspend fun updateUserProfile(displayName: String?, leoId: String?, assignedClubId: String?, bio: String?, photoBase64: String?): UserProfile {
         return client.patch("$baseUrl/users/me") {
             contentType(ContentType.Application.Json)
             getToken()?.let { token ->
@@ -118,9 +118,11 @@ class KtorRemoteDataSource(
                 }
             }
             setBody(buildMap {
+                displayName?.let { put("displayName", it) }
                 leoId?.let { put("leoId", it) }
                 assignedClubId?.let { put("assignedClubId", it) }
                 bio?.let { put("bio", it) }
+                photoBase64?.let { put("photoBytes", it) }
             })
         }.body()
     }
