@@ -109,7 +109,7 @@ class UserProfileScreenModel(
             _isLoadingFollowers.value = true
             repository.getUserFollowers(userId)
                 .onSuccess { response ->
-                    _followers.value = response.followers
+                    _followers.value = response.followers ?: emptyList()
                     _isLoadingFollowers.value = false
                 }
                 .onFailure {
@@ -124,7 +124,7 @@ class UserProfileScreenModel(
             _isLoadingFollowing.value = true
             repository.getUserFollowing(userId)
                 .onSuccess { response ->
-                    _following.value = response.followers
+                    _following.value = response.followers ?: emptyList()
                     _isLoadingFollowing.value = false
                 }
                 .onFailure {

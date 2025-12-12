@@ -107,6 +107,11 @@ interface LeoRepository {
     suspend fun getUserFollowing(userId: String, limit: Int = 50, offset: Int = 0): Result<com.rexosphere.leoconnect.data.source.remote.FollowersResponse>
 
     /**
+     * Get clubs that a user is following
+     */
+    suspend fun getUserFollowingClubs(userId: String, limit: Int = 50, offset: Int = 0): Result<List<Club>>
+
+    /**
      * Get comments for a post
      */
     suspend fun getComments(postId: String): Result<List<com.rexosphere.leoconnect.domain.model.Comment>>

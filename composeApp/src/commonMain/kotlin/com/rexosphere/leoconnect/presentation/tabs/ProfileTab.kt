@@ -23,8 +23,9 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
-import com.rexosphere.leoconnect.presentation.components.ImpactTracker
 import com.rexosphere.leoconnect.presentation.settings.SettingsScreen
+import com.rexosphere.leoconnect.presentation.following.FollowingScreen
+import com.rexosphere.leoconnect.presentation.myposts.MyPostsScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import org.jetbrains.compose.resources.painterResource
@@ -41,6 +42,7 @@ import com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle
 import com.rexosphere.leoconnect.presentation.icons.Heart
 import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.presentation.icons.Users
+import com.rexosphere.leoconnect.presentation.icons.Newspaper
 
 object ProfileTab : Tab {
     override val options: TabOptions
@@ -93,8 +95,6 @@ class ProfileScreen : Screen {
                 ) {
                     item { ProfileHeader(profile, onSettingsClick = { navigator.push(SettingsScreen()) }) }
                     item { Spacer(Modifier.height(32.dp)) }
-                    item { ImpactTracker() }
-                    item { Spacer(Modifier.height(32.dp)) }
 
                     // Menu Items
                     if (profile.leoId.isNullOrEmpty()) {
@@ -122,17 +122,17 @@ class ProfileScreen : Screen {
                         ProfileMenuItem(
                             icon = Heart,
                             title = "Following",
-                            subtitle = "${profile.followingClubs.size} clubs you're following",
-                            onClick = { /* TODO */ }
+                            subtitle = "${profile.followingClubs.size} clubs • ${profile.followingCount ?: 0} users",
+                            onClick = { navigator.push(FollowingScreen(profile.uid)) }
                         )
                     }
 
                     item {
                         ProfileMenuItem(
-                            icon = Users,
-                            title = "Invite Friends",
-                            subtitle = "Bring more Leos to LeoConnect",
-                            onClick = { /* TODO */ }
+                            icon = Newspaper,
+                            title = "My Posts",
+                            subtitle = "View and manage your posts",
+                            onClick = { navigator.push(MyPostsScreen(profile.uid)) }
                         )
                     }
 

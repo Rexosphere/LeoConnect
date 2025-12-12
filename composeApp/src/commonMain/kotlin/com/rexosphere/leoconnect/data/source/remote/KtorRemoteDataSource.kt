@@ -184,6 +184,17 @@ class KtorRemoteDataSource(
         }.body()
     }
 
+    suspend fun getUserFollowingClubs(userId: String, limit: Int = 50, offset: Int = 0): FollowingClubsResponse {
+        return client.get("$baseUrl/users/$userId/following-clubs?limit=$limit&offset=$offset") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+
     suspend fun getComments(postId: String): CommentResponse {
         return client.get("$baseUrl/posts/$postId/comments") {
             getToken()?.let { token ->
@@ -494,7 +505,15 @@ data class FollowerUser(
 
 @kotlinx.serialization.Serializable
 data class FollowersResponse(
-    val followers: List<FollowerUser>,
+    val followers: List<FollowerUser>? = null,
+    val following: List<FollowerUser>? = null,
+    val total: Int,
+    val hasMore: Boolean
+)
+
+@kotlinx.serialization.Serializable
+data class FollowingClubsResponse(
+    val clubs: List<Club>,
     val total: Int,
     val hasMore: Boolean
 )

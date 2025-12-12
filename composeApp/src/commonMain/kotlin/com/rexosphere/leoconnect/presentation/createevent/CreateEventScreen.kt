@@ -20,11 +20,12 @@ import com.rexosphere.leoconnect.presentation.icons.Photo
 import com.rexosphere.leoconnect.presentation.icons.XMark
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
-import kotlinx.datetime.*
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class CreateEventScreen : Screen {
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -188,28 +189,50 @@ class CreateEventScreen : Screen {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Event Date TextField
-                OutlinedTextField(
-                    value = eventDate,
-                    onValueChange = { eventDate = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Event Date") },
-                    placeholder = { Text("YYYY-MM-DDTHH:MM:SSZ (e.g., 2024-12-25T10:00:00Z)") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    ),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Helper text for date format
-                Text(
-                    text = "Use ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // Event Date Picker
+                val datePickerState = rememberDatePickerState()
+                
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (eventDate.isNotEmpty()) {
+                            "Event Date: ${eventDate.substringBefore('T')}"
+                        } else {
+                            "Select Event Date"
+                        }
+                    )
+                }
+                
+                if (showDatePicker) {
+                    DatePickerDialog(
+                        onDismissRequest = { showDatePicker = false },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    datePickerState.selectedDateMillis?.let { millis ->
+                                        // Convert millis to ISO 8601 format
+                                        val instant = Instant.fromEpochMilliseconds(millis)
+                                        // Set time to noon UTC to avoid timezone issues
+                                        val dateTime = instant.toString().substringBefore('T') + "T12:00:00Z"
+                                        eventDate = dateTime
+                                    }
+                                    showDatePicker = false
+                                }
+                            ) {
+                                Text("OK")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDatePicker = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    ) {
+                        DatePicker(state = datePickerState)
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

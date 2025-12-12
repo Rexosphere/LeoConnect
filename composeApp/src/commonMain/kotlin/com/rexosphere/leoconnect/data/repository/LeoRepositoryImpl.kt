@@ -224,6 +224,16 @@ class LeoRepositoryImpl(
         }
     }
 
+    override suspend fun getUserFollowingClubs(userId: String, limit: Int, offset: Int): Result<List<Club>> {
+        return try {
+            val response = remoteDataSource.getUserFollowingClubs(userId, limit, offset)
+            Result.success(response.clubs)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
     override suspend fun getComments(postId: String): Result<List<com.rexosphere.leoconnect.domain.model.Comment>> {
         return try {
             val response = remoteDataSource.getComments(postId)
