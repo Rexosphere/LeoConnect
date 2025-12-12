@@ -147,10 +147,13 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
+            
+            // Enable R8 full mode for aggressive optimization and class name shortening
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            
             if (System.getenv("SIGNING_STORE_FILE") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }

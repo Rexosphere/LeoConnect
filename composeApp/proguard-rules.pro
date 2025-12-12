@@ -5,17 +5,21 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# Keep all Compose runtime classes
--keep class androidx.compose.** { *; }
--keep class androidx.compose.runtime.** { *; }
--keep class androidx.compose.ui.** { *; }
+# Enable aggressive optimization - allow R8 to shorten class names
+-allowaccessmodification
+-repackageclasses ''
 
-# Keep Kotlin metadata
+# Keep Compose runtime - only what's needed for reflection
+-keep class androidx.compose.runtime.** { *; }
+-keep class androidx.compose.ui.platform.** { *; }
+-dontwarn androidx.compose.**
+
+# Keep Kotlin metadata for reflection
 -keep class kotlin.Metadata { *; }
--keepattributes *Annotation*, InnerClasses
+-keepattributes *Annotation*, InnerClasses, Signature, Exception
 -dontnote kotlinx.serialization.AnnotationsKt
 
-# Kotlinx Serialization
+# Kotlinx Serialization - only keep serializers
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
 -keep,includedescriptorclasses class com.rexosphere.leoconnect.**$$serializer { *; }
@@ -29,8 +33,9 @@
 # Keep data classes for serialization
 -keep @kotlinx.serialization.Serializable class * { *; }
 
-# Ktor
--keep class io.ktor.** { *; }
+# Ktor - minimal keep rules
+-keep class io.ktor.client.** { *; }
+-keep class io.ktor.http.** { *; }
 -keep class kotlinx.coroutines.** { *; }
 -dontwarn kotlinx.atomicfu.**
 -dontwarn io.netty.**
@@ -39,40 +44,35 @@
 -dontwarn java.lang.management.**
 -dontwarn javax.management.**
 
-# Koin
--keep class org.koin.** { *; }
+# Koin - only keep what's accessed via reflection
 -keep class org.koin.core.** { *; }
 -keep class org.koin.dsl.** { *; }
+-dontwarn org.koin.**
 
-# Firebase
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
--dontwarn com.google.firebase.**
-
-# Firebase Cloud Messaging (for notifications)
+# Firebase - keep only essential classes
 -keep class com.google.firebase.messaging.** { *; }
--keep class com.google.firebase.iid.** { *; }
+-keep class com.google.firebase.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
 
-# KMPNotifier
--keep class com.mmk.kmpnotifier.** { *; }
+# KMPNotifier - keep interfaces and essential classes
+-keep class com.mmk.kmpnotifier.notification.** { *; }
 -keep interface com.mmk.kmpnotifier.** { *; }
 -dontwarn com.mmk.kmpnotifier.**
 
-# Keep notification data models
--keep class com.rexosphere.leoconnect.data.model.Notification { *; }
--keep class com.rexosphere.leoconnect.data.model.NotificationListResponse { *; }
--keep class com.rexosphere.leoconnect.data.model.NotificationPreferences { *; }
--keep class com.rexosphere.leoconnect.data.model.NotificationResponse { *; }
--keep class com.rexosphere.leoconnect.data.model.NotificationTokenRequest { *; }
+# Keep only serializable data models (others can be obfuscated)
+-keep @kotlinx.serialization.Serializable class com.rexosphere.leoconnect.data.model.** { *; }
 
-# Voyager Navigator
--keep class cafe.adriel.voyager.** { *; }
+# Voyager Navigator - minimal keep
+-keep class cafe.adriel.voyager.core.screen.Screen { *; }
+-keep class cafe.adriel.voyager.navigator.** { *; }
+-dontwarn cafe.adriel.voyager.**
 
 # Kamel Image Loading
--keep class media.kamel.** { *; }
-
-# Keep application classes
--keep class com.rexosphere.leoconnect.** { *; }
+-keep class media.kamel.core.** { *; }
+-dontwarn media.kamel.**
 
 # Keep native methods
 -keepclasseswithmembernames class * {
@@ -103,10 +103,12 @@
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
+    public static *** w(...);
 }
 
-# Optimize
--optimizationpasses 5
+# Aggressive optimization settings
+-optimizationpasses 7
 -dontusemixedcaseclassnames
 -verbose
 -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+-overloadaggressively
