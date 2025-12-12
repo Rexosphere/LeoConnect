@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.rexosphere.leoconnect.domain.model.Post
@@ -24,6 +26,7 @@ import com.rexosphere.leoconnect.presentation.icons.FilledHeart
 import com.rexosphere.leoconnect.presentation.icons.Heart
 import com.rexosphere.leoconnect.presentation.icons.User
 import com.rexosphere.leoconnect.util.ClickableTextWithLinks
+import com.rexosphere.leoconnect.util.formatTimeAgo
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 
@@ -38,19 +41,55 @@ fun PostCard(
     modifier: Modifier = Modifier
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showLikeAnimation by remember { mutableStateOf(false) }
+    
+    // Animation values
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (showLikeAnimation) 1.2f else 0f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+    
+    val alpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (showLikeAnimation) 0f else 1f,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 800,
+            delayMillis = 200
+        ),
+        label = "alpha"
+    )
+    
+    // Reset animation state after it completes
+    LaunchedEffect(showLikeAnimation) {
+        if (showLikeAnimation) {
+            kotlinx.coroutines.delay(1000)
+            showLikeAnimation = false
+        }
+    }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {
-                    if (onDelete != null) {
-                        showDeleteDialog = true
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onDoubleClick = {
+                        showLikeAnimation = true
+                        onLike()
+                    },
+                    onLongClick = {
+                        if (onDelete != null) {
+                            showDeleteDialog = true
+                        }
                     }
-                }
-            )
-            .padding(horizontal = 16.dp)
+                )
+                .padding(horizontal = 16.dp)
     ) {
         // Top border (1.dp thin line)
         HorizontalDivider(
@@ -59,7 +98,7 @@ fun PostCard(
         )
 
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
-            // Header: Avatar + Name
+            // Header: Avatar + Name + Time
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable { onAuthorClick(post.authorId) }
@@ -99,11 +138,21 @@ fun PostCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Text(
-                    text = post.authorName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
-                )
+                Column {
+                    Text(
+                        text = post.authorName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                    )
+                    val timeAgo = formatTimeAgo(post.createdAt)
+                    if (timeAgo.isNotEmpty()) {
+                        Text(
+                            text = timeAgo,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -140,7 +189,7 @@ fun PostCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Like row
+            // Like and comment row
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onLike) {
                     Icon(
@@ -157,6 +206,17 @@ fun PostCard(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = if (post.commentsCount > 0) {
+                        "${post.commentsCount} ${if (post.commentsCount == 1) "comment" else "comments"}"
+                    } else {
+                        "No comments"
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -165,6 +225,24 @@ fun PostCard(
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
+    }
+        
+        // Animated heart overlay
+        if (scale > 0f) {
+            Icon(
+                imageVector = FilledHeart,
+                contentDescription = null,
+                tint = Color(0xFFE91E63),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(120.dp)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        this.alpha = alpha
+                    }
+            )
+        }
     }
 
     // Delete Confirmation Dialog

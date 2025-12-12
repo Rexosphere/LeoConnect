@@ -28,6 +28,7 @@ import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.domain.service.AuthService
 import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import com.rexosphere.leoconnect.presentation.components.*
+import com.rexosphere.leoconnect.presentation.createevent.CreateEventScreen
 import com.rexosphere.leoconnect.presentation.createpost.CreatePostScreen
 import com.rexosphere.leoconnect.presentation.icons.MagnifyingGlass
 import com.rexosphere.leoconnect.presentation.postdetail.PostDetailScreen
@@ -140,49 +141,6 @@ class HomeScreen : Screen {
                     }
                 }
             },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { navigator.push(CreatePostScreen()) },
-                    shape = CircleShape,
-                    containerColor = Color.Transparent,
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp
-                    ),
-                    modifier = Modifier
-                        .padding(bottom = bottomBarPadding)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = CircleShape,
-                            spotColor = Color.Black.copy(alpha = 0.25f),
-                            ambientColor = Color.Black.copy(alpha = 0.25f)
-                        )
-                        .clip(CircleShape)
-                        .hazeChild(
-                            state = hazeState,
-                            shape = CircleShape,
-                            style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
-                        )
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = 0.4f),
-                                    Color.White.copy(alpha = 0.1f),
-                                    Color.Transparent
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                ) {
-                    Icon(
-                        com.rexosphere.leoconnect.presentation.icons.Plus,
-                        contentDescription = "Create Post",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
             containerColor = Color.Transparent
         ) { paddingValues ->
             Box(
@@ -235,7 +193,9 @@ class HomeScreen : Screen {
                             onRSVP = { screenModel.rsvpEvent(it) },
                             onDelete = { screenModel.deleteEvent(it) },
                             currentUserId = currentUserId,
-                            bottomBarPadding = bottomBarPadding
+                            bottomBarPadding = bottomBarPadding,
+                            navigator = navigator,
+                            hazeState = hazeState
                         )
                     }
                 }
@@ -363,9 +323,12 @@ private fun EventsTab(
     onRSVP: (String) -> Unit,
     onDelete: (String) -> Unit,
     currentUserId: String?,
-    bottomBarPadding: Dp
+    bottomBarPadding: Dp,
+    navigator: cafe.adriel.voyager.navigator.Navigator,
+    hazeState: HazeState
 ) {
-    when (state) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (state) {
         is EventsUiState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -425,6 +388,25 @@ private fun EventsTab(
                     }
                 }
             }
+        }
+        }
+        
+        // FAB for creating events
+        FloatingActionButton(
+            onClick = { 
+                navigator.push(CreateEventScreen())
+            },
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .padding(bottom = bottomBarPadding)
+        ) {
+            Icon(
+                com.rexosphere.leoconnect.presentation.icons.Plus,
+                contentDescription = "Create Event",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 }
