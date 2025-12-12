@@ -118,9 +118,14 @@ class HomeScreen : Screen {
                     )
 
                     // Tab Row
-                    TabRow(
+                    PrimaryTabRow(
+                        modifier = Modifier
+                            .hazeChild(
+                                state = hazeState,
+                                style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+                            ),
                         selectedTabIndex = currentTab.ordinal,
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
                         contentColor = MaterialTheme.colorScheme.primary
                     ) {
                         Tab(

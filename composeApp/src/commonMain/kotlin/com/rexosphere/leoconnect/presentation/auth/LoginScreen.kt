@@ -1,6 +1,7 @@
 package com.rexosphere.leoconnect.presentation.auth
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,7 @@ import com.rexosphere.leoconnect.presentation.MainScreen
 import org.jetbrains.compose.resources.painterResource
 import leoconnect.composeapp.generated.resources.Res
 import leoconnect.composeapp.generated.resources.ic_google_logo
+import leoconnect.composeapp.generated.resources.leo_gold
 import org.jetbrains.compose.resources.*
 
 class LoginScreen : Screen {
@@ -63,11 +65,10 @@ private fun LoginScreenContent(
             verticalArrangement = Arrangement.Center
         ) {
             // App Icon + Name
-            Text(
-                text = "\uD83E\uDD81",
-                fontSize = 82.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary
+            Image(
+                painter = painterResource(Res.drawable.leo_gold),
+                contentDescription = "Leo Connect Logo",
+                modifier = Modifier.size(82.dp)
             )
 
             Text(

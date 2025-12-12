@@ -96,17 +96,56 @@ class ProfileScreen : Screen {
                     item { ProfileHeader(profile, onSettingsClick = { navigator.push(SettingsScreen()) }) }
                     item { Spacer(Modifier.height(32.dp)) }
 
-                    // Menu Items
-                    if (profile.leoId.isNullOrEmpty()) {
+                    // Unverified Warning
+                    if (!profile.isVerified) {
                         item {
-                            ProfileMenuItem(
-                                icon = CheckBadge,
-                                title = "Verify Leo ID",
-                                subtitle = "Prove you're a real Leo member",
-                                badge = "New",
-                                onClick = { navigator.push(com.rexosphere.leoconnect.presentation.verifyleoid.VerifyLeoIdScreen()) }
-                            )
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        ExclamationTriangle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Account Not Verified",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            text = "You cannot create posts until your Leo ID is verified.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
+                            }
                         }
+                        item { Spacer(Modifier.height(8.dp)) }
+                    }
+
+                    // Menu Items
+                    item {
+                        ProfileMenuItem(
+                            icon = CheckBadge,
+                            title = "Verify Leo ID",
+                            subtitle = "Prove you're a real Leo member",
+                            badge = if (!profile.isVerified) "Required" else null,
+                            onClick = { navigator.push(com.rexosphere.leoconnect.presentation.verifyleoid.VerifyLeoIdScreen()) }
+                        )
                     }
 
 
@@ -190,7 +229,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
                         fontSize = 28.sp
                     )
                 )
-                if (!profile.leoId.isNullOrEmpty()) {
+                if (profile.isVerified) {
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         CheckBadge,
@@ -210,7 +249,7 @@ private fun ProfileHeader(profile: UserProfile, onSettingsClick: () -> Unit) {
             Spacer(Modifier.height(12.dp))
 
             // Leo ID Badge
-            if (!profile.leoId.isNullOrEmpty()) {
+            if (!profile.leoId.isNullOrEmpty() && profile.isVerified) {
                 Surface(
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(20.dp)
