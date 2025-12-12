@@ -100,9 +100,9 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Result<Post> {
+    override suspend fun createPost(content: String, imagesList: List<String>, clubId: String?, clubName: String?): Result<Post> {
         return try {
-            val post = remoteDataSource.createPost(content, imageBytes, clubId, clubName)
+            val post = remoteDataSource.createPost(content, imagesList, clubId, clubName)
             Result.success(post)
         } catch (e: Exception) {
             Result.failure(e)

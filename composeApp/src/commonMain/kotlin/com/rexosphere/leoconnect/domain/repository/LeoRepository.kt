@@ -55,7 +55,7 @@ interface LeoRepository {
     /**
      * Create a new post
      */
-    suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Result<Post>
+    suspend fun createPost(content: String, imagesList: List<String>, clubId: String?, clubName: String?): Result<Post>
 
     /**
      * Delete a post (only author can delete)

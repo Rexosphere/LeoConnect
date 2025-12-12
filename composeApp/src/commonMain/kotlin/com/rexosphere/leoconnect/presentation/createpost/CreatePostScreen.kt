@@ -30,14 +30,18 @@ class CreatePostScreen : Screen {
         val uiState by screenModel.uiState.collectAsState()
 
         var content by remember { mutableStateOf("") }
-        var selectedImageBase64 by remember { mutableStateOf<String?>(null) }
+        var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
         var imagePickerError by remember { mutableStateOf<String?>(null) }
 
         // Image picker launcher
         val imagePicker = rememberImagePicker(
             onImageSelected = { base64 ->
-                selectedImageBase64 = base64
-                imagePickerError = null
+                if (selectedImages.size < 4) {
+                    selectedImages = selectedImages + base64!!
+                    imagePickerError = null
+                } else {
+                    imagePickerError = "Maximum 4 images allowed"
+                }
             },
             onError = { error ->
                 imagePickerError = error
@@ -67,7 +71,7 @@ class CreatePostScreen : Screen {
                             onClick = {
                                 screenModel.createPost(
                                     content = content,
-                                    imageBytes = selectedImageBase64
+                                    imagesList = selectedImages
                                 )
                             },
                             enabled = content.isNotBlank() && !isLoading
@@ -164,38 +168,61 @@ class CreatePostScreen : Screen {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Image preview section
-                if (selectedImageBase64 != null) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            // Display selected image preview
-                            Base64Image(
-                                base64String = selectedImageBase64!!,
-                                contentDescription = "Selected image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-
-                            // Remove button with background
-                            IconButton(
-                                onClick = { selectedImageBase64 = null },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(8.dp),
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                                )
+                // Images preview section
+                if (selectedImages.isNotEmpty()) {
+                    // Grid layout for images
+                    val rows = (selectedImages.size + 1) / 2
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        for (rowIndex in 0 until rows) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    XMark,
-                                    contentDescription = "Remove image",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                for (colIndex in 0 until 2) {
+                                    val imageIndex = rowIndex * 2 + colIndex
+                                    if (imageIndex < selectedImages.size) {
+                                        Card(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .aspectRatio(1f),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Box(modifier = Modifier.fillMaxSize()) {
+                                                Base64Image(
+                                                    base64String = selectedImages[imageIndex],
+                                                    contentDescription = "Selected image ${imageIndex + 1}",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
+                                                )
+
+                                                // Remove button
+                                                IconButton(
+                                                    onClick = {
+                                                        selectedImages = selectedImages.filterIndexed { index, _ -> index != imageIndex }
+                                                    },
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .padding(4.dp),
+                                                    colors = IconButtonDefaults.iconButtonColors(
+                                                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                                                    )
+                                                ) {
+                                                    Icon(
+                                                        XMark,
+                                                        contentDescription = "Remove image",
+                                                        tint = MaterialTheme.colorScheme.onSurface,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                            if (rowIndex < rows - 1) {
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
@@ -208,7 +235,7 @@ class CreatePostScreen : Screen {
                         imagePicker.launch()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedImageBase64 == null
+                    enabled = selectedImages.size < 4
                 ) {
                     Icon(
                         Photo,
@@ -216,7 +243,13 @@ class CreatePostScreen : Screen {
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (selectedImageBase64 == null) "Add Photo" else "Photo Added")
+                    Text(
+                        when {
+                            selectedImages.isEmpty() -> "Add Photos (up to 4)"
+                            selectedImages.size < 4 -> "Add More Photos (${selectedImages.size}/4)"
+                            else -> "Maximum Photos Reached (4/4)"
+                        }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -228,10 +261,10 @@ class CreatePostScreen : Screen {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (selectedImageBase64 != null) {
+                if (selectedImages.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Image will be compressed to under 2MB",
+                        text = "Each image will be compressed to under 2MB",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )

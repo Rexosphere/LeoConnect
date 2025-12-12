@@ -165,26 +165,144 @@ fun PostCard(
                 linkColor = MaterialTheme.colorScheme.primary
             )
 
-            // Post image (if exists)
-            if (post.imageUrl != null) {
+            // Post images (if exists)
+            if (post.images.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                KamelImage(
-                    resource = { asyncPainterResource(data = post.imageUrl) },
-                    contentDescription = "Post image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clip(MaterialTheme.shapes.large), // slight corner radius like Threads
-                    contentScale = ContentScale.Crop,
-                    onLoading = { CircularProgressIndicator(it) },
-                    onFailure = {
-                        Icon(
-                            ExclamationTriangle,
-                            contentDescription = "Failed to load",
-                            tint = MaterialTheme.colorScheme.error
+                when (post.images.size) {
+                    1 -> {
+                        // Single image - full width
+                        KamelImage(
+                            resource = { asyncPainterResource(data = post.images[0]) },
+                            contentDescription = "Post image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(MaterialTheme.shapes.large),
+                            contentScale = ContentScale.Crop,
+                            onLoading = { CircularProgressIndicator(it) },
+                            onFailure = {
+                                Icon(
+                                    ExclamationTriangle,
+                                    contentDescription = "Failed to load",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         )
                     }
-                )
+                    2 -> {
+                        // Two images side by side
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            post.images.forEach { imageUrl ->
+                                KamelImage(
+                                    resource = { asyncPainterResource(data = imageUrl) },
+                                    contentDescription = "Post image",
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(MaterialTheme.shapes.medium),
+                                    contentScale = ContentScale.Crop,
+                                    onLoading = { CircularProgressIndicator(it) },
+                                    onFailure = {
+                                        Icon(
+                                            ExclamationTriangle,
+                                            contentDescription = "Failed to load",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    3 -> {
+                        // Three images: 2 on top, 1 below
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                for (i in 0..1) {
+                                    KamelImage(
+                                        resource = { asyncPainterResource(data = post.images[i]) },
+                                        contentDescription = "Post image ${i + 1}",
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(1f)
+                                            .clip(MaterialTheme.shapes.medium),
+                                        contentScale = ContentScale.Crop,
+                                        onLoading = { CircularProgressIndicator(it) },
+                                        onFailure = {
+                                            Icon(
+                                                ExclamationTriangle,
+                                                contentDescription = "Failed to load",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                            KamelImage(
+                                resource = { asyncPainterResource(data = post.images[2]) },
+                                contentDescription = "Post image 3",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(2f)
+                                    .clip(MaterialTheme.shapes.medium),
+                                contentScale = ContentScale.Crop,
+                                onLoading = { CircularProgressIndicator(it) },
+                                onFailure = {
+                                    Icon(
+                                        ExclamationTriangle,
+                                        contentDescription = "Failed to load",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    else -> {
+                        // Four or more images: 2x2 grid
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            for (rowIndex in 0..1) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    for (colIndex in 0..1) {
+                                        val imageIndex = rowIndex * 2 + colIndex
+                                        if (imageIndex < post.images.size) {
+                                            KamelImage(
+                                                resource = { asyncPainterResource(data = post.images[imageIndex]) },
+                                                contentDescription = "Post image ${imageIndex + 1}",
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .aspectRatio(1f)
+                                                    .clip(MaterialTheme.shapes.medium),
+                                                contentScale = ContentScale.Crop,
+                                                onLoading = { CircularProgressIndicator(it) },
+                                                onFailure = {
+                                                    Icon(
+                                                        ExclamationTriangle,
+                                                        contentDescription = "Failed to load",
+                                                        tint = MaterialTheme.colorScheme.error
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

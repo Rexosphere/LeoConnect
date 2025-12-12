@@ -1,5 +1,6 @@
 package com.rexosphere.leoconnect.presentation.postdetail
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -198,6 +201,9 @@ private fun ThreadsStylePostItem(
     onLikeClick: () -> Unit,
     onUserClick: (String) -> Unit
 ) {
+    var showFullscreenImage by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableStateOf(0) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         // Top border
         Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
@@ -233,18 +239,120 @@ private fun ThreadsStylePostItem(
                 linkColor = MaterialTheme.colorScheme.primary
             )
 
-            // Image
-            post.imageUrl?.let { url ->
+            // Images Grid
+            if (post.images.isNotEmpty()) {
                 Spacer(Modifier.height(12.dp))
-                KamelImage(
-                    resource = asyncPainterResource(url),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                when (post.images.size) {
+                    1 -> {
+                        KamelImage(
+                            resource = asyncPainterResource(post.images[0]),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    selectedImageIndex = 0
+                                    showFullscreenImage = true
+                                },
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    2 -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            post.images.forEachIndexed { index, imageUrl ->
+                                KamelImage(
+                                    resource = asyncPainterResource(imageUrl),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            selectedImageIndex = index
+                                            showFullscreenImage = true
+                                        },
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                    }
+                    3 -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                for (i in 0..1) {
+                                    KamelImage(
+                                        resource = asyncPainterResource(post.images[i]),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                selectedImageIndex = i
+                                                showFullscreenImage = true
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                            KamelImage(
+                                resource = asyncPainterResource(post.images[2]),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(2f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        selectedImageIndex = 2
+                                        showFullscreenImage = true
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                    else -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            for (rowIndex in 0..1) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    for (colIndex in 0..1) {
+                                        val imageIndex = rowIndex * 2 + colIndex
+                                        if (imageIndex < post.images.size) {
+                                            KamelImage(
+                                                resource = asyncPainterResource(post.images[imageIndex]),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .aspectRatio(1f)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable {
+                                                        selectedImageIndex = imageIndex
+                                                        showFullscreenImage = true
+                                                    },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -271,6 +379,15 @@ private fun ThreadsStylePostItem(
 
         // Bottom border
         Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+    }
+
+    // Fullscreen Image Viewer
+    if (showFullscreenImage && post.images.isNotEmpty()) {
+        FullscreenImageViewer(
+            images = post.images,
+            initialIndex = selectedImageIndex,
+            onDismiss = { showFullscreenImage = false }
+        )
     }
 }
 
@@ -396,4 +513,86 @@ private fun CommentInputBar(
 private fun formatTimeAgo(timestamp: String): String {
     // Replace with real time formatting (e.g., TimeAgo library)
     return "2h ago"
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun FullscreenImageViewer(
+    images: List<String>,
+    initialIndex: Int,
+    onDismiss: () -> Unit
+) {
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(
+        initialPage = initialIndex,
+        pageCount = { images.size }
+    )
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            // Horizontal Pager for swiping between images
+            androidx.compose.foundation.pager.HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    KamelImage(
+                        resource = asyncPainterResource(images[page]),
+                        contentDescription = "Image ${page + 1}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+            // Close button
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Black.copy(alpha = 0.5f)
+                )
+            ) {
+                Icon(
+                    com.rexosphere.leoconnect.presentation.icons.XMark,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
+
+            // Page indicator
+            if (images.size > 1) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(images.size) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = if (index == pagerState.currentPage) Color.White else Color.White.copy(alpha = 0.5f),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

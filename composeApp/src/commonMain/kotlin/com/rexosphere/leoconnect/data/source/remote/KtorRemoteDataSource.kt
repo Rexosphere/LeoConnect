@@ -53,7 +53,28 @@ class KtorRemoteDataSource(
         }
     }
 
-    suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Post {
+    suspend fun createPost(content: String, imagesList: List<String>, clubId: String?, clubName: String?): Post {
+        @kotlinx.serialization.Serializable
+        data class ImageData(
+            val imageBytes: String,
+            val imageMimeType: String = "image/jpeg"
+        )
+
+        @kotlinx.serialization.Serializable
+        data class CreatePostRequest(
+            val content: String,
+            val imagesList: List<ImageData>,
+            val clubId: String?,
+            val clubName: String?
+        )
+
+        val request = CreatePostRequest(
+            content = content,
+            imagesList = imagesList.map { ImageData(it) },
+            clubId = clubId,
+            clubName = clubName
+        )
+
         return client.post("$baseUrl/posts") {
             contentType(ContentType.Application.Json)
             getToken()?.let { token ->
@@ -61,12 +82,7 @@ class KtorRemoteDataSource(
                     append(HttpHeaders.Authorization, "Bearer $token")
                 }
             }
-            setBody(mapOf(
-                "content" to content,
-                "imageBytes" to imageBytes,
-                "clubId" to clubId,
-                "clubName" to clubName
-            ))
+            setBody(request)
         }.body()
     }
 

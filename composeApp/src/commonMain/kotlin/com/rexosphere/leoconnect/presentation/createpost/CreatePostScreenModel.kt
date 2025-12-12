@@ -35,7 +35,7 @@ class CreatePostScreenModel(
         }
     }
 
-    fun createPost(content: String, imageBytes: String?) {
+    fun createPost(content: String, imagesList: List<String>) {
         if (content.isBlank()) {
             mutableState.value = CreatePostUiState.Error("Post content cannot be empty")
             return
@@ -44,7 +44,7 @@ class CreatePostScreenModel(
         screenModelScope.launch {
             mutableState.value = CreatePostUiState.Loading
             // Use the user's assigned club ID if available
-            repository.createPost(content, imageBytes, _userClubId.value, null)
+            repository.createPost(content, imagesList, _userClubId.value, null)
                 .onSuccess { post ->
                     mutableState.value = CreatePostUiState.Success(post)
                 }
