@@ -11,6 +11,7 @@ data class UserProfile(
     val leoId: String? = null,
     val bio: String? = null,
     val isWebmaster: Boolean = false,
+    val isVerified: Boolean = false,
     val assignedClubId: String? = null,
     val followingClubs: List<String> = emptyList(),
     val onboardingCompleted: Boolean = false,
@@ -20,3 +21,4 @@ data class UserProfile(
     val isFollowing: Boolean? = false,
     val isMutualFollow: Boolean? = false
 )
+

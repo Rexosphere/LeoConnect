@@ -104,19 +104,11 @@ class ProfileScreen : Screen {
                                 title = "Verify Leo ID",
                                 subtitle = "Prove you're a real Leo member",
                                 badge = "New",
-                                onClick = { /* TODO */ }
+                                onClick = { navigator.push(com.rexosphere.leoconnect.presentation.verifyleoid.VerifyLeoIdScreen()) }
                             )
                         }
                     }
 
-                    item {
-                        ProfileMenuItem(
-                            icon = CalendarDays,
-                            title = "My Leo Journey",
-                            subtitle = "Your membership history & milestones",
-                            onClick = { /* TODO */ }
-                        )
-                    }
 
                     item {
                         ProfileMenuItem(

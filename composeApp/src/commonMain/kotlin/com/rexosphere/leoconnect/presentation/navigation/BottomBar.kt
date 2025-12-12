@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -172,6 +173,9 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
 @Composable
 private fun RowScope.CreatePostNavItem(hazeState: HazeState) {
     val navigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
+    val repository = koinInject<com.rexosphere.leoconnect.domain.repository.LeoRepository>()
+    val userProfile by remember { repository.getAuthState() }.collectAsState(initial = null)
+    var showVerificationDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -179,7 +183,13 @@ private fun RowScope.CreatePostNavItem(hazeState: HazeState) {
         contentAlignment = Alignment.Center
     ) {
         FloatingActionButton(
-            onClick = { navigator.push(CreatePostScreen()) },
+            onClick = {
+                if (userProfile?.isVerified == true) {
+                    navigator.push(CreatePostScreen())
+                } else {
+                    showVerificationDialog = true
+                }
+            },
             shape = CircleShape,
             containerColor = Color.Transparent,
             elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp),
@@ -216,5 +226,40 @@ private fun RowScope.CreatePostNavItem(hazeState: HazeState) {
                 tint = MaterialTheme.colorScheme.primary
             )
         }
+    }
+
+    // Verification Required Dialog
+    if (showVerificationDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showVerificationDialog = false },
+            icon = {
+                Icon(
+                    com.rexosphere.leoconnect.presentation.icons.ExclamationTriangle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Verification Required") },
+            text = {
+                Text("You need to verify your Leo ID before you can create posts. Please verify your Leo ID from your profile to unlock this feature.")
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        showVerificationDialog = false
+                        navigator.push(com.rexosphere.leoconnect.presentation.verifyleoid.VerifyLeoIdScreen())
+                    }
+                ) {
+                    Text("Verify Now")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { showVerificationDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
