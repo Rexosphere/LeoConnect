@@ -119,8 +119,8 @@ android {
         applicationId = "com.rexosphere.leoconnect"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 3
-        versionName = "3.0"
+        versionCode = 4
+        versionName = "4.0"
     }
     packaging {
         resources {
