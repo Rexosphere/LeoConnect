@@ -5,8 +5,31 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Event(
     val eventId: String,
-    val title: String,
-    val date: String, // ISO 8601 string preferred, or Long timestamp
-    val location: String,
-    val rsvpCount: Int = 0
+    val clubId: String?,
+    val clubName: String?,
+    val authorId: String,
+    val authorName: String,
+    val name: String,
+    val description: String,
+    val eventDate: String,
+    val imageUrl: String?,
+    val rsvpCount: Int,
+    val hasRSVPd: Boolean,
+    val rsvpParticipants: List<RSVPParticipant>,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class RSVPParticipant(
+    val uid: String,
+    val displayName: String,
+    val photoUrl: String?
+)
+
+@Serializable
+data class RSVPResponse(
+    val message: String,
+    val rsvpCount: Int,
+    val hasRSVPd: Boolean
 )

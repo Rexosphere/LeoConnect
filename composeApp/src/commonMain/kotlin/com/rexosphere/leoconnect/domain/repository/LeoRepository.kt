@@ -27,9 +27,14 @@ interface LeoRepository {
     fun isSignedIn(): Boolean
 
     /**
-     * Get the home feed
+     * Get the home feed (posts from followed users and clubs)
      */
     suspend fun getHomeFeed(limit: Int): Result<List<Post>>
+
+    /**
+     * Get the explore feed (all posts from anyone)
+     */
+    suspend fun getExploreFeed(limit: Int): Result<List<Post>>
 
     /**
      * Like a post
@@ -40,6 +45,11 @@ interface LeoRepository {
      * Create a new post
      */
     suspend fun createPost(content: String, imageBytes: String?, clubId: String?, clubName: String?): Result<Post>
+
+    /**
+     * Delete a post (only author can delete)
+     */
+    suspend fun deletePost(postId: String): Result<Boolean>
 
     /**
      * Get all districts
@@ -160,6 +170,50 @@ interface LeoRepository {
      * Search for users to message
      */
     suspend fun searchUsers(query: String): Result<List<com.rexosphere.leoconnect.data.source.remote.UserSearchResult>>
+
+    // ==================== EVENT METHODS ====================
+
+    /**
+     * Get all events, optionally filtered by club
+     */
+    suspend fun getEvents(limit: Int = 20, clubId: String? = null): Result<List<com.rexosphere.leoconnect.domain.model.Event>>
+
+    /**
+     * Get a single event by ID
+     */
+    suspend fun getEventById(eventId: String): Result<com.rexosphere.leoconnect.domain.model.Event>
+
+    /**
+     * Create a new event
+     */
+    suspend fun createEvent(
+        name: String,
+        description: String,
+        eventDate: String,
+        clubId: String? = null,
+        imageBytes: String? = null
+    ): Result<com.rexosphere.leoconnect.domain.model.Event>
+
+    /**
+     * Update an existing event
+     */
+    suspend fun updateEvent(
+        eventId: String,
+        name: String? = null,
+        description: String? = null,
+        eventDate: String? = null,
+        imageBytes: String? = null
+    ): Result<com.rexosphere.leoconnect.domain.model.Event>
+
+    /**
+     * Delete an event
+     */
+    suspend fun deleteEvent(eventId: String): Result<Boolean>
+
+    /**
+     * RSVP to an event (toggle)
+     */
+    suspend fun rsvpEvent(eventId: String): Result<com.rexosphere.leoconnect.domain.model.RSVPResponse>
 }
 
 data class SearchResult(

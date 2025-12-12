@@ -316,6 +316,129 @@ class KtorRemoteDataSource(
             }
         }.body()
     }
+
+    // ==================== NEW METHODS ====================
+
+    suspend fun getExploreFeed(limit: Int): List<Post> {
+        return client.get("$baseUrl/explore?limit=$limit") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun deletePost(postId: String): DeleteResponse {
+        return client.delete("$baseUrl/posts/$postId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    // ==================== EVENT METHODS ====================
+
+    suspend fun getEvents(limit: Int, clubId: String?): List<com.rexosphere.leoconnect.domain.model.Event> {
+        val url = if (clubId != null) {
+            "$baseUrl/events?limit=$limit&clubId=$clubId"
+        } else {
+            "$baseUrl/events?limit=$limit"
+        }
+        return client.get(url) {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun getEventById(eventId: String): com.rexosphere.leoconnect.domain.model.Event {
+        return client.get("$baseUrl/events/$eventId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun createEvent(
+        name: String,
+        description: String,
+        eventDate: String,
+        clubId: String?,
+        imageBytes: String?
+    ): com.rexosphere.leoconnect.domain.model.Event {
+        return client.post("$baseUrl/events") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(buildMap {
+                put("name", name)
+                put("description", description)
+                put("eventDate", eventDate)
+                clubId?.let { put("clubId", it) }
+                imageBytes?.let { put("imageBytes", it) }
+                // Add imageMimeType if imageBytes is present
+                if (imageBytes != null) {
+                    put("imageMimeType", "image/jpeg")
+                }
+            })
+        }.body()
+    }
+
+    suspend fun updateEvent(
+        eventId: String,
+        name: String?,
+        description: String?,
+        eventDate: String?,
+        imageBytes: String?
+    ): com.rexosphere.leoconnect.domain.model.Event {
+        return client.patch("$baseUrl/events/$eventId") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(buildMap {
+                name?.let { put("name", it) }
+                description?.let { put("description", it) }
+                eventDate?.let { put("eventDate", it) }
+                imageBytes?.let {
+                    put("imageBytes", it)
+                    put("imageMimeType", "image/jpeg")
+                }
+            })
+        }.body()
+    }
+
+    suspend fun deleteEvent(eventId: String): DeleteResponse {
+        return client.delete("$baseUrl/events/$eventId") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
+    suspend fun rsvpEvent(eventId: String): com.rexosphere.leoconnect.domain.model.RSVPResponse {
+        return client.post("$baseUrl/events/$eventId/rsvp") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
 }
 
 @kotlinx.serialization.Serializable

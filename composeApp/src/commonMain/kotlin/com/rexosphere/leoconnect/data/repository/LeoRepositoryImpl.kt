@@ -346,4 +346,92 @@ class LeoRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    // ==================== NEW METHODS ====================
+
+    override suspend fun getExploreFeed(limit: Int): Result<List<Post>> {
+        return try {
+            val posts = remoteDataSource.getExploreFeed(limit)
+            Result.success(posts)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deletePost(postId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.deletePost(postId)
+            Result.success(response.success)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ==================== EVENT METHODS ====================
+
+    override suspend fun getEvents(limit: Int, clubId: String?): Result<List<com.rexosphere.leoconnect.domain.model.Event>> {
+        return try {
+            val events = remoteDataSource.getEvents(limit, clubId)
+            Result.success(events)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getEventById(eventId: String): Result<com.rexosphere.leoconnect.domain.model.Event> {
+        return try {
+            val event = remoteDataSource.getEventById(eventId)
+            Result.success(event)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun createEvent(
+        name: String,
+        description: String,
+        eventDate: String,
+        clubId: String?,
+        imageBytes: String?
+    ): Result<com.rexosphere.leoconnect.domain.model.Event> {
+        return try {
+            val event = remoteDataSource.createEvent(name, description, eventDate, clubId, imageBytes)
+            Result.success(event)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateEvent(
+        eventId: String,
+        name: String?,
+        description: String?,
+        eventDate: String?,
+        imageBytes: String?
+    ): Result<com.rexosphere.leoconnect.domain.model.Event> {
+        return try {
+            val event = remoteDataSource.updateEvent(eventId, name, description, eventDate, imageBytes)
+            Result.success(event)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteEvent(eventId: String): Result<Boolean> {
+        return try {
+            val response = remoteDataSource.deleteEvent(eventId)
+            Result.success(response.success)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun rsvpEvent(eventId: String): Result<com.rexosphere.leoconnect.domain.model.RSVPResponse> {
+        return try {
+            val response = remoteDataSource.rsvpEvent(eventId)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
