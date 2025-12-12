@@ -10,7 +10,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import com.rexosphere.leoconnect.data.repository.NotificationRepository
 import com.rexosphere.leoconnect.di.androidPlatformModule
 import com.rexosphere.leoconnect.di.commonModule
-import com.rexosphere.leoconnect.presentation.auth.LoginScreen
+import com.rexosphere.leoconnect.presentation.splash.SplashScreen
 import com.rexosphere.leoconnect.ui.theme.AppTheme
 import com.rexosphere.leoconnect.util.NotificationInitializer
 import io.kamel.core.config.KamelConfig
@@ -43,7 +43,7 @@ fun AndroidApp(context: Context) {
         
         AppTheme {
             CompositionLocalProvider(LocalKamelConfig provides kamelConfig) {
-                Navigator(LoginScreen())
+                Navigator(SplashScreen())
             }
         }
     }
