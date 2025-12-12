@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -220,48 +221,57 @@ private fun MessagesTab(
                 }
 
                 is MessagesUiState.Success -> {
-                    if (state.conversations.isEmpty()) {
-                        EmptyMessagesState()
-                    } else {
-                        PullToRefreshContainer(
-                            isRefreshing = isRefreshing,
-                            onRefresh = {
-                                isRefreshing = true
-                                screenModel.loadConversations()
-                            },
-                            modifier = Modifier.fillMaxSize()
+                    PullToRefreshContainer(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            screenModel.loadConversations()
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                top = 8.dp,
+                                bottom = bottomBarPadding + 8.dp
+                            )
                         ) {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(
-                                    top = 8.dp,
-                                    bottom = bottomBarPadding + 8.dp
+                            // Leo AI permanent chat item
+                            item(key = "leo_ai") {
+                                LeoAiConversationItem(
+                                    onClick = {
+                                        navigator.push(com.rexosphere.leoconnect.presentation.chat.LeoAiChatScreen())
+                                    }
                                 )
-                            ) {
-                                items(state.conversations, key = { it.userId }) { conversation ->
-                                    ConversationItem(
-                                        conversation = conversation,
-                                        onClick = {
-                                            // Create a UserProfile from the conversation data
-                                            val userProfile = UserProfile(
-                                                uid = conversation.userId,
-                                                email = "",
-                                                displayName = conversation.displayName,
-                                                photoURL = conversation.photoUrl,
-                                                leoId = null,
-                                                assignedClubId = null
-                                            )
-                                            navigator.push(ChatScreen(userProfile))
-                                        },
-                                        onDelete = {
-                                            screenModel.deleteConversation(conversation.userId)
-                                        }
-                                    )
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                    )
-                                }
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                )
+                            }
+
+                            items(state.conversations, key = { it.userId }) { conversation ->
+                                ConversationItem(
+                                    conversation = conversation,
+                                    onClick = {
+                                        // Create a UserProfile from the conversation data
+                                        val userProfile = UserProfile(
+                                            uid = conversation.userId,
+                                            email = "",
+                                            displayName = conversation.displayName,
+                                            photoURL = conversation.photoUrl,
+                                            leoId = null,
+                                            assignedClubId = null
+                                        )
+                                        navigator.push(ChatScreen(userProfile))
+                                    },
+                                    onDelete = {
+                                        screenModel.deleteConversation(conversation.userId)
+                                    }
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                )
                             }
                         }
                     }
@@ -678,5 +688,92 @@ private fun UserSearchResultItem(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f)
         )
+    }
+}
+
+@Composable
+private fun LeoAiConversationItem(
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f)
+                    )
+                )
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Robot emoji avatar
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "🤖",
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+
+        Spacer(Modifier.width(16.dp))
+
+        // Content
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Leo AI",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "AI",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                text = "Ask me anything about Leo Clubs! 💬",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }

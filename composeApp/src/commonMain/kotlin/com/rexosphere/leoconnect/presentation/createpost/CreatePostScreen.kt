@@ -8,14 +8,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.presentation.components.rememberImagePicker
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.Photo
 import com.rexosphere.leoconnect.presentation.icons.XMark
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 
 class CreatePostScreen : Screen {
 
@@ -28,7 +32,18 @@ class CreatePostScreen : Screen {
 
         var content by remember { mutableStateOf("") }
         var selectedImageBase64 by remember { mutableStateOf<String?>(null) }
-        var showImagePicker by remember { mutableStateOf(false) }
+        var imagePickerError by remember { mutableStateOf<String?>(null) }
+
+        // Image picker launcher
+        val imagePicker = rememberImagePicker(
+            onImageSelected = { base64 ->
+                selectedImageBase64 = base64
+                imagePickerError = null
+            },
+            onError = { error ->
+                imagePickerError = error
+            }
+        )
 
         // Handle success state
         LaunchedEffect(uiState) {
@@ -82,7 +97,7 @@ class CreatePostScreen : Screen {
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Error message
+                // Error messages
                 if (uiState is CreatePostUiState.Error) {
                     Card(
                         modifier = Modifier
@@ -97,6 +112,39 @@ class CreatePostScreen : Screen {
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(16.dp)
                         )
+                    }
+                }
+
+                // Image picker error
+                if (imagePickerError != null) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = imagePickerError!!,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { imagePickerError = null }) {
+                                Icon(
+                                    XMark,
+                                    contentDescription = "Dismiss",
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -117,28 +165,48 @@ class CreatePostScreen : Screen {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Image section
+                // Image preview section
                 if (selectedImageBase64 != null) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(300.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // Display selected image preview here
-                            // For now, just show a placeholder
-                            Box(
+                            // Display selected image preview
+                            KamelImage(
+                                resource = asyncPainterResource("data:image/jpeg;base64,$selectedImageBase64"),
+                                contentDescription = "Selected image",
                                 modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("Image Selected")
-                            }
+                                contentScale = ContentScale.Crop,
+                                onLoading = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                },
+                                onFailure = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Failed to load image")
+                                    }
+                                }
+                            )
 
-                            // Remove button
+                            // Remove button with background
                             IconButton(
                                 onClick = { selectedImageBase64 = null },
-                                modifier = Modifier.align(Alignment.TopEnd)
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp),
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                                )
                             ) {
                                 Icon(
                                     XMark,
@@ -154,11 +222,10 @@ class CreatePostScreen : Screen {
                 // Add image button
                 OutlinedButton(
                     onClick = {
-                        // TODO: Implement image picker
-                        // For now, just show a message
-                        showImagePicker = true
+                        imagePicker.launch()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = selectedImageBase64 == null
                 ) {
                     Icon(
                         Photo,
@@ -166,7 +233,7 @@ class CreatePostScreen : Screen {
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add Photo")
+                    Text(if (selectedImageBase64 == null) "Add Photo" else "Photo Added")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -177,21 +244,16 @@ class CreatePostScreen : Screen {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-        }
 
-        // Image picker dialog (placeholder)
-        if (showImagePicker) {
-            AlertDialog(
-                onDismissRequest = { showImagePicker = false },
-                title = { Text("Image Picker") },
-                text = { Text("Image picker functionality will be implemented in platform-specific code. For now, you can create text-only posts.") },
-                confirmButton = {
-                    TextButton(onClick = { showImagePicker = false }) {
-                        Text("OK")
-                    }
+                if (selectedImageBase64 != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Image will be compressed to under 2MB",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-            )
+            }
         }
     }
 }

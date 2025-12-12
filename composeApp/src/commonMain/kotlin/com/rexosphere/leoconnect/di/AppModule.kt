@@ -42,6 +42,11 @@ val commonModule = module {
     }
     single<LeoRepository> { LeoRepositoryImpl(get(), get(), get()) }
 
+    // Leo AI Service
+    single {
+        com.rexosphere.leoconnect.data.source.remote.LeoAiService(get())
+    }
+
     // Notification service and repository
     single<com.rexosphere.leoconnect.data.service.NotificationService> {
         com.rexosphere.leoconnect.data.service.NotificationServiceImpl(
@@ -67,6 +72,7 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.search.SearchScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.createpost.CreatePostScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.chat.LeoAiChatScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.notifications.NotificationsScreenModel(get()) }
 }

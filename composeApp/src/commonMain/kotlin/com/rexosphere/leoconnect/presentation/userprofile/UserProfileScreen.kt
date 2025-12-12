@@ -155,9 +155,9 @@ data class UserProfileScreen(val userId: String) : Screen {
                                         authorName = profile.displayName,
                                         authorLogo = profile.photoURL
                                     ),
-                                    onLikeClick = { screenModel.toggleLike(post.postId) },
-                                    onPostClick = { navigator.push(PostDetailScreen(post)) },
-                                    onUserClick = { userId -> navigator.push(UserProfileScreen(userId)) },
+                                    onLike = { screenModel.toggleLike(post.postId) },
+                                    onClick = { navigator.push(PostDetailScreen(post)) },
+                                    onAuthorClick = { navigator.push(UserProfileScreen(post.authorId)) },
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
                                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))

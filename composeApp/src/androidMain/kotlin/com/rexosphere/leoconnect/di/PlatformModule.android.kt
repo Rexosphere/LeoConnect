@@ -20,6 +20,9 @@ fun androidPlatformModule(context: Context): Module = module {
     single<com.rexosphere.leoconnect.data.source.local.LocalDataSource> {
         com.rexosphere.leoconnect.data.source.local.PreferencesDataSource(get())
     }
+    single<com.rexosphere.leoconnect.util.NetworkMonitor> {
+        com.rexosphere.leoconnect.util.AndroidNetworkMonitor(context.applicationContext)
+    }
 }
 
 actual val platformModule: Module

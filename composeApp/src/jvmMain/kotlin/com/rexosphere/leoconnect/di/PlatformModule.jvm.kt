@@ -13,5 +13,8 @@ actual val platformModule: Module = module {
     single<com.rexosphere.leoconnect.data.source.local.LocalDataSource> {
         com.rexosphere.leoconnect.data.source.local.PreferencesDataSource(get())
     }
+    single<com.rexosphere.leoconnect.util.NetworkMonitor> {
+        com.rexosphere.leoconnect.util.JvmNetworkMonitor()
+    }
 }
 

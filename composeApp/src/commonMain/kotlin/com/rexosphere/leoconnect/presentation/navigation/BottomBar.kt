@@ -1,10 +1,17 @@
 package com.rexosphere.leoconnect.presentation.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +24,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,56 +42,94 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import com.rexosphere.leoconnect.presentation.createpost.CreatePostScreen
 import com.rexosphere.leoconnect.presentation.icons.Plus
+import com.rexosphere.leoconnect.presentation.tabs.ClubsTab
+import com.rexosphere.leoconnect.presentation.tabs.HomeTab
+import com.rexosphere.leoconnect.presentation.tabs.MessagesTabNavigator
+import com.rexosphere.leoconnect.presentation.tabs.ProfileTab
+import com.rexosphere.leoconnect.util.NetworkMonitor
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.materials.HazeMaterials
+import org.koin.compose.koinInject
 
 @Composable
 fun BottomBar(hazeState: HazeState) {
-    // 1. Define the shape once to reuse for clipping, haze, and border
-    val barShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    val networkMonitor = koinInject<NetworkMonitor>()
+    val isOnline by networkMonitor.isOnline.collectAsState()
 
-    // 2. Capture colors for the border gradient
-    val borderBrush = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Top highlight (Light edge)
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f) // Fades out at bottom
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Offline indicator
+        AnimatedVisibility(
+            visible = !isOnline,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(300)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(300)
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.error)
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No Internet Connection",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onError
+                )
+            }
+        }
+
+        // 1. Define the shape once to reuse for clipping, haze, and border
+        val barShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+
+        // 2. Capture colors for the border gradient
+        val borderBrush = Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Top highlight (Light edge)
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f) // Fades out at bottom
+            )
         )
-    )
 
-    NavigationBar(
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        // 3. CRITICAL: Remove default M3 tonal elevation to prevent opaque overlay
-        tonalElevation = 0.dp,
-        modifier = Modifier
-            // 4. Add a soft shadow for depth
-            .shadow(
-                elevation = 12.dp,
-                shape = barShape,
-                spotColor = Color.Black.copy(alpha = 0.15f),
-                ambientColor = Color.Black.copy(alpha = 0.15f)
-            )
-            // 5. Clip explicitly before haze
-            .clip(barShape)
-            .hazeChild(
-                state = hazeState,
-                shape = barShape,
-                style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
-            )
-            // 6. Subtle background tint for readability
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-            .border(
-                width = 1.dp,
-                brush = borderBrush,
-                shape = barShape
-            )
-    ) {
-        TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.HomeTab)
-        TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ClubsTab)
-        CreatePostNavItem(hazeState = hazeState)
-        TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.MessagesTabNavigator)
-        TabNavigationItem(com.rexosphere.leoconnect.presentation.tabs.ProfileTab)
+        NavigationBar(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            // 3. CRITICAL: Remove default M3 tonal elevation to prevent opaque overlay
+            tonalElevation = 0.dp,
+            modifier = Modifier
+                // 4. Add a soft shadow for depth
+                .shadow(
+                    elevation = 12.dp,
+                    shape = barShape,
+                    spotColor = Color.Black.copy(alpha = 0.15f),
+                    ambientColor = Color.Black.copy(alpha = 0.15f)
+                )
+                // 5. Clip explicitly before haze
+                .clip(barShape)
+                .hazeChild(
+                    state = hazeState,
+                    shape = barShape,
+                    style = HazeMaterials.thin(MaterialTheme.colorScheme.surface)
+                )
+                // 6. Subtle background tint for readability
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+                .border(
+                    width = 1.dp,
+                    brush = borderBrush,
+                    shape = barShape
+                )
+        ) {
+            TabNavigationItem(HomeTab)
+            TabNavigationItem(ClubsTab)
+            CreatePostNavItem(hazeState = hazeState)
+            TabNavigationItem(MessagesTabNavigator)
+            TabNavigationItem(ProfileTab)
+        }
     }
 }
 
