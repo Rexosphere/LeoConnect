@@ -14,12 +14,11 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.presentation.components.Base64Image
 import com.rexosphere.leoconnect.presentation.components.rememberImagePicker
 import com.rexosphere.leoconnect.presentation.icons.ChevronLeft
 import com.rexosphere.leoconnect.presentation.icons.Photo
 import com.rexosphere.leoconnect.presentation.icons.XMark
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
 
 class CreatePostScreen : Screen {
 
@@ -175,27 +174,11 @@ class CreatePostScreen : Screen {
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             // Display selected image preview
-                            KamelImage(
-                                resource = asyncPainterResource("data:image/jpeg;base64,$selectedImageBase64"),
+                            Base64Image(
+                                base64String = selectedImageBase64!!,
                                 contentDescription = "Selected image",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                onLoading = {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                },
-                                onFailure = {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("Failed to load image")
-                                    }
-                                }
+                                contentScale = ContentScale.Crop
                             )
 
                             // Remove button with background

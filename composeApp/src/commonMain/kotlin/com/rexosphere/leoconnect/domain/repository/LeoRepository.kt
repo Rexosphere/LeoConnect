@@ -4,8 +4,19 @@ import com.rexosphere.leoconnect.domain.model.Club
 import com.rexosphere.leoconnect.domain.model.Post
 import com.rexosphere.leoconnect.domain.model.UserProfile
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface LeoRepository {
+    /**
+     * Get the unread messages count as a flow
+     */
+    val unreadMessagesCount: StateFlow<Int>
+
+    /**
+     * Refresh the unread messages count
+     */
+    suspend fun refreshUnreadMessagesCount()
+
     /**
      * Sign in with Google and retrieve user profile
      */

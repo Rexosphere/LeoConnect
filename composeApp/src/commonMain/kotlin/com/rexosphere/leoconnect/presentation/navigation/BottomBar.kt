@@ -57,6 +57,13 @@ import org.koin.compose.koinInject
 fun BottomBar(hazeState: HazeState) {
     val networkMonitor = koinInject<NetworkMonitor>()
     val isOnline by networkMonitor.isOnline.collectAsState()
+    val repository = koinInject<com.rexosphere.leoconnect.domain.repository.LeoRepository>()
+    val unreadMessagesCount by repository.unreadMessagesCount.collectAsState()
+
+    // Refresh unread count when BottomBar is displayed
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        repository.refreshUnreadMessagesCount()
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Offline indicator
@@ -128,14 +135,14 @@ fun BottomBar(hazeState: HazeState) {
             TabNavigationItem(HomeTab)
             TabNavigationItem(ClubsTab)
             CreatePostNavItem(hazeState = hazeState)
-            TabNavigationItem(MessagesTabNavigator)
+            TabNavigationItem(MessagesTabNavigator, showBadge = unreadMessagesCount > 0)
             TabNavigationItem(ProfileTab)
         }
     }
 }
 
 @Composable
-private fun RowScope.TabNavigationItem(tab: Tab) {
+private fun RowScope.TabNavigationItem(tab: Tab, showBadge: Boolean = false) {
     val tabNavigator = LocalTabNavigator.current
     val selected = tabNavigator.current == tab
 
@@ -144,12 +151,27 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
         onClick = { tabNavigator.current = tab },
         icon = {
             tab.options.icon?.let { icon ->
-                Icon(
-                    painter = icon,
-                    contentDescription = tab.options.title,
-                    // Optional: Scale effect on selection
-                    modifier = Modifier.scale(if (selected) 1.1f else 1.0f)
-                )
+                androidx.compose.material3.BadgedBox(
+                    badge = {
+                        if (showBadge) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.error,
+                                        shape = CircleShape
+                                    )
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = icon,
+                        contentDescription = tab.options.title,
+                        // Optional: Scale effect on selection
+                        modifier = Modifier.scale(if (selected) 1.1f else 1.0f)
+                    )
+                }
             }
         },
         label = {

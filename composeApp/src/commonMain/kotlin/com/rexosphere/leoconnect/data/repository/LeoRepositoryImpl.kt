@@ -21,6 +21,8 @@ class LeoRepositoryImpl(
 ) : LeoRepository {
 
     private val _authState = MutableStateFlow<UserProfile?>(null)
+    private val _unreadMessagesCount = MutableStateFlow(0)
+    override val unreadMessagesCount = _unreadMessagesCount.asStateFlow()
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     init {
@@ -29,6 +31,8 @@ class LeoRepositoryImpl(
             val cachedProfile = localDataSource.getUserProfile()
             if (cachedProfile != null) {
                 _authState.value = cachedProfile
+                // Refresh unread messages count when user is signed in
+                refreshUnreadMessagesCount()
             }
         }
     }
@@ -51,6 +55,9 @@ class LeoRepositoryImpl(
             localDataSource.saveUserProfile(profile)
             localDataSource.setLoggedIn(true)
 
+            // 4. Refresh unread messages count
+            refreshUnreadMessagesCount()
+
             Result.success(profile)
         } catch (e: Exception) {
             Result.failure(e)
@@ -60,6 +67,7 @@ class LeoRepositoryImpl(
     override suspend fun signOut() {
         authService.signOut()
         _authState.value = null
+        _unreadMessagesCount.value = 0
         // Clear all cached data
         localDataSource.clearAll()
     }
@@ -303,9 +311,23 @@ class LeoRepositoryImpl(
         }
     }
 
+    override suspend fun refreshUnreadMessagesCount() {
+        try {
+            val conversations = remoteDataSource.getConversations()
+            val totalUnread = conversations.sumOf { it.unreadCount }
+            _unreadMessagesCount.value = totalUnread
+        } catch (e: Exception) {
+            // Silently fail - don't update count if fetch fails
+            e.printStackTrace()
+        }
+    }
+
     override suspend fun getConversations(): Result<List<com.rexosphere.leoconnect.domain.model.Conversation>> {
         return try {
             val conversations = remoteDataSource.getConversations()
+            // Update unread count whenever conversations are fetched
+            val totalUnread = conversations.sumOf { it.unreadCount }
+            _unreadMessagesCount.value = totalUnread
             Result.success(conversations)
         } catch (e: Exception) {
             Result.failure(e)
