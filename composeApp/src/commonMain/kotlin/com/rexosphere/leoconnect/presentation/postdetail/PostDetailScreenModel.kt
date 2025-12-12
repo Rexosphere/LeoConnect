@@ -68,10 +68,7 @@ class PostDetailScreenModel(
 
     fun toggleCommentLike(commentId: String) {
         screenModelScope.launch {
-            // TODO: Implement comment liking in backend first
-            // repository.likeComment(commentId)
-            
-            // For now, just optimistic local update for demo
+            // Optimistic local update first for responsive UI
             val currentState = mutableState.value
             if (currentState is PostDetailUiState.Success) {
                 val updatedComments = currentState.comments.map { comment ->
@@ -86,6 +83,43 @@ class PostDetailScreenModel(
                 }
                 mutableState.value = PostDetailUiState.Success(updatedComments)
             }
+            
+            // Call API and update with real values
+            repository.likeComment(commentId)
+                .onSuccess { response ->
+                    val state = mutableState.value
+                    if (state is PostDetailUiState.Success) {
+                        val syncedComments = state.comments.map { comment ->
+                            if (comment.commentId == commentId) {
+                                comment.copy(
+                                    isLikedByUser = response.isLikedByUser,
+                                    likesCount = response.likesCount
+                                )
+                            } else {
+                                comment
+                            }
+                        }
+                        mutableState.value = PostDetailUiState.Success(syncedComments)
+                    }
+                }
+                .onFailure { e ->
+                    println("Failed to like comment: ${e.message}")
+                    // Revert optimistic update on failure
+                    val state = mutableState.value
+                    if (state is PostDetailUiState.Success) {
+                        val revertedComments = state.comments.map { comment ->
+                            if (comment.commentId == commentId) {
+                                comment.copy(
+                                    isLikedByUser = !comment.isLikedByUser,
+                                    likesCount = if (comment.isLikedByUser) comment.likesCount - 1 else comment.likesCount + 1
+                                )
+                            } else {
+                                comment
+                            }
+                        }
+                        mutableState.value = PostDetailUiState.Success(revertedComments)
+                    }
+                }
         }
     }
 }

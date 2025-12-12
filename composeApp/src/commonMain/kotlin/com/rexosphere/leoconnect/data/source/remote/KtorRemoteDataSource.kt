@@ -202,6 +202,16 @@ class KtorRemoteDataSource(
         }.body()
     }
 
+    suspend fun likeComment(commentId: String): com.rexosphere.leoconnect.domain.model.CommentLikeResponse {
+        return client.post("$baseUrl/comments/$commentId/like") {
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }.body()
+    }
+
     suspend fun getClubPosts(clubId: String): List<Post> {
         return client.get("$baseUrl/clubs/$clubId/posts") {
             getToken()?.let { token ->
