@@ -37,7 +37,7 @@ fun PostCard(
             .padding(horizontal = 16.dp)
     ) {
         // Top border (1.dp thin line)
-        Divider(
+        HorizontalDivider(
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
@@ -145,7 +145,7 @@ fun PostCard(
         }
 
         // Bottom border
-        Divider(
+        HorizontalDivider(
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
