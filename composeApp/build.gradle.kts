@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -191,6 +192,19 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.rexosphere.leoconnect.MainKt"
+
+        // Load properties from local.properties and pass them as JVM arguments
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { stream -> localProperties.load(stream) }
+        }
+
+        // Pass Google OAuth credentials to the JVM
+        jvmArgs(
+            "-DGOOGLE_DESKTOP_CLIENT_ID=${localProperties.getProperty("GOOGLE_DESKTOP_CLIENT_ID", "")}",
+            "-DGOOGLE_DESKTOP_CLIENT_SECRET=${localProperties.getProperty("GOOGLE_DESKTOP_CLIENT_SECRET", "")}"
+        )
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
