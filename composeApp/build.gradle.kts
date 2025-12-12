@@ -104,6 +104,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.cio)  // For HTTP requests
+            implementation(libs.ktor.server.cio)  // For OAuth callback server
         }
     }
 }

@@ -75,7 +75,11 @@ class KtorRemoteDataSource(
     }
 
     suspend fun getClubsByDistrict(district: String): List<Club> {
-        return client.get("$baseUrl/clubs?district=$district").body()
+        return client.get("$baseUrl/clubs") {
+            url {
+                parameters.append("district", district)
+            }
+        }.body()
     }
 
     suspend fun getUserProfile(uid: String? = null): UserProfile {
