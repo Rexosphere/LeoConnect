@@ -51,7 +51,7 @@ val commonModule = module {
     single<com.rexosphere.leoconnect.data.service.NotificationService> {
         com.rexosphere.leoconnect.data.service.NotificationServiceImpl(
             httpClient = get(),
-            baseUrl = "https://leoconnect.rexosphere.com",
+            baseUrl = "https://leoconnect_backend.leoconnect-api.workers.dev",
             getToken = { get<AuthService>().getCurrentToken() }
         )
     }

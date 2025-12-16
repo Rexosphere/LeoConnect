@@ -19,7 +19,7 @@ class KtorRemoteDataSource(
     private val client: HttpClient,
     private val getToken: suspend () -> String?
 ) {
-    private val baseUrl = "https://leoconnect.rexosphere.com"
+    private val baseUrl = "https://leoconnect_backend.leoconnect-api.workers.dev"
 
     /**
      * Authenticate with Google and get user profile
