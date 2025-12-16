@@ -33,12 +33,11 @@ class AndroidAuthService(
             val webClientId = getWebClientId()
             Log.d(TAG, "Starting Google Sign-In with Web Client ID: ${webClientId.take(20)}...")
 
-            // 1. Configure Google Sign-In
-            // Generate a nonce (optional but recommended for security)
-            val hashedNonce = java.util.UUID.randomUUID().toString()
-            
-            val googleIdOption = GetSignInWithGoogleOption.Builder(webClientId)
-                .setNonce(hashedNonce)
+            // 1. Configure Google Sign-In using GetGoogleIdOption (more compatible)
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setServerClientId(webClientId)
+                .setFilterByAuthorizedAccounts(false)  // Allow any Google account
+                .setAutoSelectEnabled(false)  // Don't auto-select, let user choose
                 .build()
 
             val request = GetCredentialRequest.Builder()
@@ -158,9 +157,9 @@ class AndroidAuthService(
      * Get the Web Client ID from the Firebase project
      */
     private fun getWebClientId(): String {
-        // Hardcoded Web Client ID to ensure correct resolution
-        // This is the client_type: 3 ID from google-services.json
-        val webClientId = "124058547668-kon20mi71tottki8najp3cv58qj3ptf3.apps.googleusercontent.com"
+        // Web Client ID from google-services.json (client_type: 3)
+        // This must match the Firebase project leoconnect-b9e55
+        val webClientId = "675897604946-cjk7qjg6h9j3q3dnul16ud7kn9m75eus.apps.googleusercontent.com"
         Log.d(TAG, "Using Web Client ID: $webClientId")
         return webClientId
     }

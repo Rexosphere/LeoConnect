@@ -12,7 +12,20 @@
           "package_name": "com.rexosphere.leoconnect"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "675897604946-p3ieg2dm2lh351e2c54jjfdb1ai2cjib.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rexosphere.leoconnect",
+            "certificate_hash": "633e6061bb2d91942f02c182b3fd7ca39a844332"
+          }
+        },
+        {
+          "client_id": "675897604946-cjk7qjg6h9j3q3dnul16ud7kn9m75eus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAmle5riiCXEA-u_UcK_dCv7jI2oqBEtEE"
@@ -20,18 +33,36 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "675897604946-cjk7qjg6h9j3q3dnul16ud7kn9m75eus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:675897604946:android:05ff9ab39c09abe7be588b",
+        "mobilesdk_app_id": "1:675897604946:android:8e0d0ef4ae49f92bbe588b",
         "android_client_info": {
           "package_name": "com.rexosphere.leoconnect.debug"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "675897604946-ene6alq9uod0rbdedeq6cg7hltgaf7a9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rexosphere.leoconnect.debug",
+            "certificate_hash": "633e6061bb2d91942f02c182b3fd7ca39a844332"
+          }
+        },
+        {
+          "client_id": "675897604946-cjk7qjg6h9j3q3dnul16ud7kn9m75eus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAmle5riiCXEA-u_UcK_dCv7jI2oqBEtEE"
@@ -39,7 +70,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "675897604946-cjk7qjg6h9j3q3dnul16ud7kn9m75eus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
