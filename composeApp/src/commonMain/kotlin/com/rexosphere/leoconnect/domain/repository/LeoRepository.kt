@@ -23,6 +23,13 @@ interface LeoRepository {
     suspend fun googleSignIn(): Result<UserProfile>
 
     /**
+     * Complete email/password sign-in with backend after Firebase auth
+     * User must already be authenticated with Firebase (email verified)
+     * @param onStatus Callback for status updates during sign-in process
+     */
+    suspend fun emailSignIn(onStatus: (String) -> Unit = {}): Result<UserProfile>
+
+    /**
      * Sign out the current user
      */
     suspend fun signOut()

@@ -10,6 +10,24 @@ private class IosAuthService : AuthService {
         return Result.failure(Exception("iOS Sign-In not implemented yet"))
     }
 
+    override suspend fun createUserWithEmailPassword(email: String, password: String): Result<String> {
+        return Result.failure(Exception("iOS Email Sign-Up not implemented yet"))
+    }
+
+    override suspend fun signInWithEmailPassword(email: String, password: String): Result<String> {
+        return Result.failure(Exception("iOS Email Sign-In not implemented yet"))
+    }
+
+    override suspend fun sendEmailVerification(): Result<Unit> {
+        return Result.failure(Exception("iOS Email Verification not implemented yet"))
+    }
+
+    override suspend fun isEmailVerified(): Boolean = false
+
+    override suspend fun reloadUser(): Result<Unit> {
+        return Result.failure(Exception("iOS not implemented yet"))
+    }
+
     override suspend fun getCurrentToken(forceRefresh: Boolean): String? = null
     override suspend fun signOut() {}
     override fun getCurrentUserId(): String? = null

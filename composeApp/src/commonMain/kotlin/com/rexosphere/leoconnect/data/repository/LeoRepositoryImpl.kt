@@ -120,6 +120,54 @@ class LeoRepositoryImpl(
         cryptoService.clearKeys()
     }
 
+    override suspend fun emailSignIn(onStatus: (String) -> Unit): Result<UserProfile> {
+        return try {
+            onStatus("Authenticating with server...")
+            
+            val firebaseToken = authService.getCurrentToken(forceRefresh = true)
+                ?: return Result.failure(Exception("Not signed in. Please sign in again."))
+
+            val profile = remoteDataSource.googleSignIn(firebaseToken)
+            _authState.value = profile
+
+            localDataSource.saveUserProfile(profile)
+            localDataSource.setLoggedIn(true)
+
+            try {
+                val hasLocalKeys = cryptoService.hasKeyPair()
+                val hasServerKey = profile.publicKey != null
+                
+                if (!hasLocalKeys) {
+                    onStatus("Setting up encryption...")
+                    cryptoService.generateKeyPair()
+                }
+                
+                if (!hasServerKey) {
+                    onStatus("Uploading encryption key...")
+                    val localPublicKey = cryptoService.getPublicKey()
+                    if (localPublicKey != null) {
+                        try {
+                            val updatedProfile = remoteDataSource.updatePublicKey(localPublicKey, force = false)
+                            _authState.value = updatedProfile
+                            localDataSource.saveUserProfile(updatedProfile)
+                        } catch (e: Exception) {
+                            println("E2E Encryption: Failed to upload public key: ${e.message}")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("E2E Encryption: Error setting up encryption: ${e.message}")
+            }
+
+            onStatus("Finalizing...")
+            refreshUnreadMessagesCount()
+
+            Result.success(_authState.value ?: profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     override fun getAuthState(): Flow<UserProfile?> {
         return _authState.asStateFlow()

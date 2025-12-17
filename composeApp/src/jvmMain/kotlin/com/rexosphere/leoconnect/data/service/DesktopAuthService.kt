@@ -195,6 +195,23 @@ class DesktopAuthService : AuthService {
         val token = cachedIdToken ?: prefs.get(PREF_ID_TOKEN, null)
         return token != null
     }
+
+    // Email/Password authentication methods - Desktop uses OAuth flow only
+    override suspend fun createUserWithEmailPassword(email: String, password: String): Result<String> {
+        return Result.failure(Exception("Email/Password sign-up is not available on Desktop. Please use Google Sign-In."))
+    }
+
+    override suspend fun signInWithEmailPassword(email: String, password: String): Result<String> {
+        return Result.failure(Exception("Email/Password sign-in is not available on Desktop. Please use Google Sign-In."))
+    }
+
+    override suspend fun sendEmailVerification(): Result<Unit> {
+        return Result.failure(Exception("Email verification is not available on Desktop."))
+    }
+
+    override suspend fun isEmailVerified(): Boolean = true // OAuth users are verified
+
+    override suspend fun reloadUser(): Result<Unit> = Result.success(Unit)
     
     /**
      * Refresh the access token using the refresh token
