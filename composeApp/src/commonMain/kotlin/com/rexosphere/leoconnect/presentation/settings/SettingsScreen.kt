@@ -166,6 +166,11 @@ class SettingsScreen : Screen {
                         color = MaterialTheme.colorScheme.error
                     )
                 }
+
+                // Bottom spacing to ensure Sign Out is visible above nav bar
+                item {
+                    Spacer(modifier = Modifier.padding(bottom = 100.dp))
+                }
             }
         }
 
