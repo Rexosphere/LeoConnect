@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.androidx.credentials.play.services)
             implementation(libs.googleid)
             implementation("androidx.core:core-splashscreen:1.0.1")
+            implementation("androidx.security:security-crypto:1.1.0-alpha06")
         }
         commonMain.dependencies {
             implementation(compose.runtime)

@@ -18,6 +18,9 @@ private class IosAuthService : AuthService {
 
 actual val platformModule: Module = module {
     single<AuthService> { IosAuthService() }
+    single<com.rexosphere.leoconnect.domain.service.CryptoService> {
+        com.rexosphere.leoconnect.data.service.CryptoServiceImpl()
+    }
     single<com.rexosphere.leoconnect.data.source.local.LeoPreferences> {
         com.rexosphere.leoconnect.data.source.local.IosPreferences()
     }

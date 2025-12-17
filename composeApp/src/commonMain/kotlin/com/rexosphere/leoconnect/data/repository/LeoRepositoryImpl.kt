@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 class LeoRepositoryImpl(
     private val remoteDataSource: KtorRemoteDataSource,
     private val authService: AuthService,
-    private val localDataSource: com.rexosphere.leoconnect.data.source.local.LocalDataSource
+    private val localDataSource: com.rexosphere.leoconnect.data.source.local.LocalDataSource,
+    private val cryptoService: com.rexosphere.leoconnect.domain.service.CryptoService
 ) : LeoRepository {
 
     private val _authState = MutableStateFlow<UserProfile?>(null)
@@ -37,8 +38,10 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun googleSignIn(): Result<UserProfile> {
+    override suspend fun googleSignIn(onStatus: (String) -> Unit): Result<UserProfile> {
         return try {
+            onStatus("Signing in with Google...")
+            
             // 1. Sign in with Google and get Firebase token
             val tokenResult = authService.signInWithGoogle()
             if (tokenResult.isFailure) {
@@ -47,6 +50,8 @@ class LeoRepositoryImpl(
 
             val firebaseToken = tokenResult.getOrThrow()
 
+            onStatus("Authenticating with server...")
+            
             // 2. Send Firebase token to backend and get user profile
             val profile = remoteDataSource.googleSignIn(firebaseToken)
             _authState.value = profile
@@ -55,14 +60,64 @@ class LeoRepositoryImpl(
             localDataSource.saveUserProfile(profile)
             localDataSource.setLoggedIn(true)
 
-            // 4. Refresh unread messages count
+            // 4. Generate and upload encryption keys
+            try {
+                println("E2E Encryption: Checking key status...")
+                val hasLocalKeys = cryptoService.hasKeyPair()
+                val hasServerKey = profile.publicKey != null
+                
+                println("E2E Encryption: Local keys exist: $hasLocalKeys, Server key exists: $hasServerKey")
+                
+                // Generate keys if we don't have them locally
+                if (!hasLocalKeys) {
+                    onStatus("Setting up encryption...")
+                    println("E2E Encryption: Generating new key pair...")
+                    val keyGenResult = cryptoService.generateKeyPair()
+                    if (keyGenResult.isFailure) {
+                        println("E2E Encryption: Failed to generate keys: ${keyGenResult.exceptionOrNull()?.message}")
+                    } else {
+                        println("E2E Encryption: Key pair generated successfully")
+                    }
+                }
+                
+                // Upload public key if server doesn't have one
+                if (!hasServerKey) {
+                    onStatus("Uploading encryption key...")
+                    println("E2E Encryption: Server doesn't have public key, uploading...")
+                    val localPublicKey = cryptoService.getPublicKey()
+                    if (localPublicKey != null) {
+                        try {
+                            val updatedProfile = remoteDataSource.updatePublicKey(localPublicKey, force = false)
+                            _authState.value = updatedProfile
+                            localDataSource.saveUserProfile(updatedProfile)
+                            println("E2E Encryption: Public key uploaded successfully")
+                        } catch (uploadError: Exception) {
+                            println("E2E Encryption: Failed to upload public key: ${uploadError.message}")
+                            uploadError.printStackTrace()
+                        }
+                    } else {
+                        println("E2E Encryption: No local public key available to upload")
+                    }
+                } else {
+                    println("E2E Encryption: Server already has public key, skipping upload")
+                }
+            } catch (e: Exception) {
+                // Log error but don't fail login
+                println("E2E Encryption: Error setting up encryption: ${e.message}")
+                e.printStackTrace()
+            }
+
+            onStatus("Finalizing...")
+            
+            // 5. Refresh unread messages count
             refreshUnreadMessagesCount()
 
-            Result.success(profile)
+            Result.success(_authState.value ?: profile)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     override suspend fun signOut() {
         authService.signOut()
@@ -70,7 +125,10 @@ class LeoRepositoryImpl(
         _unreadMessagesCount.value = 0
         // Clear all cached data
         localDataSource.clearAll()
+        // Clear encryption keys
+        cryptoService.clearKeys()
     }
+
 
     override fun getAuthState(): Flow<UserProfile?> {
         return _authState.asStateFlow()
@@ -171,6 +229,18 @@ class LeoRepositoryImpl(
             val profile = remoteDataSource.completeOnboarding(leoId, assignedClubId)
             _authState.value = profile
             // Cache the profile after onboarding
+            localDataSource.saveUserProfile(profile)
+            Result.success(profile)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updatePublicKey(publicKey: String, force: Boolean): Result<UserProfile> {
+        return try {
+            val profile = remoteDataSource.updatePublicKey(publicKey, force)
+            _authState.value = profile
+            // Cache the updated profile
             localDataSource.saveUserProfile(profile)
             Result.success(profile)
         } catch (e: Exception) {

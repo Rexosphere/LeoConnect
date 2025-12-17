@@ -15,8 +15,10 @@ data class LoginUiState(
     val isSignedIn: Boolean = false,
     val needsOnboarding: Boolean = false,
     val userProfile: UserProfile? = null,
-    val error: String? = null
+    val error: String? = null,
+    val statusMessage: String? = null
 )
+
 
 class LoginScreenModel(
     private val repository: LeoRepository
@@ -53,9 +55,12 @@ class LoginScreenModel(
 
     fun signInWithGoogle() {
         screenModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.update { it.copy(isLoading = true, error = null, statusMessage = "Signing in...") }
 
-            repository.googleSignIn()
+            repository.googleSignIn { status ->
+                // Update status message during sign-in
+                _state.update { it.copy(statusMessage = status) }
+            }
                 .onSuccess { userProfile ->
                     _state.update {
                         it.copy(
@@ -63,7 +68,8 @@ class LoginScreenModel(
                             isSignedIn = true,
                             needsOnboarding = !userProfile.onboardingCompleted,
                             userProfile = userProfile,
-                            error = null
+                            error = null,
+                            statusMessage = null
                         )
                     }
                 }
@@ -72,10 +78,12 @@ class LoginScreenModel(
                         it.copy(
                             isLoading = false,
                             isSignedIn = false,
-                            error = exception.message ?: "Sign in failed"
+                            error = exception.message ?: "Sign in failed",
+                            statusMessage = null
                         )
                     }
                 }
         }
     }
+
 }

@@ -14,6 +14,9 @@ fun androidPlatformModule(context: Context): Module = module {
             firebaseAuth = get()
         )
     }
+    single<com.rexosphere.leoconnect.domain.service.CryptoService> {
+        com.rexosphere.leoconnect.data.service.CryptoServiceImpl(context.applicationContext)
+    }
     single<com.rexosphere.leoconnect.data.source.local.LeoPreferences> {
         com.rexosphere.leoconnect.data.source.local.AndroidPreferences(context.applicationContext)
     }

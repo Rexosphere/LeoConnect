@@ -179,7 +179,11 @@ data class ChatScreen(
                         IconButton(
                             onClick = {
                                 if (messageText.isNotBlank()) {
-                                    screenModel.sendMessage(otherUser.uid, messageText.trim())
+                                    screenModel.sendMessage(
+                                        receiverId = otherUser.uid,
+                                        content = messageText.trim(),
+                                        receiverPublicKey = otherUser.publicKey
+                                    )
                                     messageText = ""
                                 }
                             },
@@ -279,16 +283,31 @@ private fun MessageBubble(
             shape = bubbleShape
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                ClickableTextWithLinks(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor,
-                    linkColor = if (isCurrentUser) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
-                )
+                // Check if message is a decryption error
+                val isDecryptionError = message.content.startsWith("[Failed to decrypt:")
+                
+                if (isDecryptionError) {
+                    // Show error message with monospaced font
+                    Text(
+                        text = message.content,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                        ),
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                } else {
+                    // Show normal message
+                    ClickableTextWithLinks(
+                        text = message.content,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = textColor,
+                        linkColor = if (isCurrentUser) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        }
+                    )
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = formatTimestamp(message.createdAt),

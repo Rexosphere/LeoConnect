@@ -140,6 +140,17 @@ private fun LoginScreenContent(
                 }
             }
 
+            // Status message (for encryption setup)
+            if (state.statusMessage != null && state.isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.statusMessage ?: "",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+
             // Error message
             if (state.error != null) {
                 Spacer(modifier = Modifier.height(20.dp))

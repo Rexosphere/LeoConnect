@@ -40,7 +40,7 @@ val commonModule = module {
             getToken = { get<AuthService>().getCurrentToken() }
         )
     }
-    single<LeoRepository> { LeoRepositoryImpl(get(), get(), get()) }
+    single<LeoRepository> { LeoRepositoryImpl(get(), get(), get(), get()) }
 
     // Leo AI Service
     single {
@@ -72,7 +72,7 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.search.SearchScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.createpost.CreatePostScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.createevent.CreateEventScreenModel(get()) }
-    factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get(), get()) }
     factory { com.rexosphere.leoconnect.presentation.chat.LeoAiChatScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.notifications.NotificationsScreenModel(get()) }

@@ -15,10 +15,12 @@ data class UserProfile(
     val assignedClubId: String? = null,
     val followingClubs: List<String> = emptyList(),
     val onboardingCompleted: Boolean = false,
+    val publicKey: String? = null, // RSA public key for E2E encryption
     val postsCount: Int? = 0,
     val followersCount: Int? = 0,
     val followingCount: Int? = 0,
     val isFollowing: Boolean? = false,
     val isMutualFollow: Boolean? = false
 )
+
 

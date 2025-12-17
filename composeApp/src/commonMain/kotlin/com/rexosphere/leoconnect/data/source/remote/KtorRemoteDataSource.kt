@@ -9,6 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.patch
+import io.ktor.client.request.put
 import io.ktor.client.request.delete
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -141,6 +142,26 @@ class KtorRemoteDataSource(
             })
         }.body()
     }
+
+    suspend fun updatePublicKey(publicKey: String, force: Boolean = false): UserProfile {
+        @kotlinx.serialization.Serializable
+        data class UpdatePublicKeyRequest(
+            val publicKey: String,
+            val force: Boolean
+        )
+
+        return client.put("$baseUrl/users/me/public-key") {
+            contentType(ContentType.Application.Json)
+            getToken()?.let { token ->
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+            setBody(UpdatePublicKeyRequest(publicKey, force))
+        }.body()
+    }
+
+
 
     suspend fun followUser(userId: String): FollowResponse {
         return client.post("$baseUrl/users/$userId/follow") {

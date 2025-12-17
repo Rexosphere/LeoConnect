@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.rexosphere.leoconnect.domain.model.Message
 import com.rexosphere.leoconnect.domain.repository.LeoRepository
+import com.rexosphere.leoconnect.domain.service.CryptoService
 import kotlinx.coroutines.launch
 
 sealed class ChatUiState {
@@ -13,7 +14,8 @@ sealed class ChatUiState {
 }
 
 class ChatScreenModel(
-    private val repository: LeoRepository
+    private val repository: LeoRepository,
+    private val cryptoService: CryptoService
 ) : StateScreenModel<ChatUiState>(ChatUiState.Loading) {
     val uiState = mutableState
 
@@ -22,7 +24,21 @@ class ChatScreenModel(
             mutableState.value = ChatUiState.Loading
             repository.getMessages(userId)
                 .onSuccess { messages ->
-                    mutableState.value = ChatUiState.Success(messages)
+                    // Decrypt messages
+                    val decryptedMessages = messages.map { message ->
+                        val decryptedContent = if (message.content.startsWith("ENC:")) {
+                            // Message is encrypted, try to decrypt
+                            val ciphertext = message.content.removePrefix("ENC:")
+                            cryptoService.decrypt(ciphertext).getOrElse {
+                                "[Failed to decrypt: ${it.message}]"
+                            }
+                        } else {
+                            // Message is not encrypted (backward compatibility)
+                            message.content
+                        }
+                        message.copy(content = decryptedContent)
+                    }
+                    mutableState.value = ChatUiState.Success(decryptedMessages)
                 }
                 .onFailure { error ->
                     mutableState.value = ChatUiState.Error(error.message ?: "Failed to load messages")
@@ -30,16 +46,40 @@ class ChatScreenModel(
         }
     }
 
-    fun sendMessage(receiverId: String, content: String) {
+    fun sendMessage(receiverId: String, content: String, receiverPublicKey: String?) {
         if (content.isBlank()) return
 
         screenModelScope.launch {
-            repository.sendMessage(receiverId, content)
+            // Encrypt message if receiver has a public key
+            val messageContent = if (receiverPublicKey != null) {
+                cryptoService.encrypt(content, receiverPublicKey).getOrElse {
+                    // If encryption fails, send unencrypted with warning
+                    println("Failed to encrypt message: ${it.message}")
+                    content
+                }.let { encrypted ->
+                    "ENC:$encrypted" // Prefix to indicate encrypted message
+                }
+            } else {
+                // Receiver doesn't have public key, send unencrypted
+                content
+            }
+
+            repository.sendMessage(receiverId, messageContent)
                 .onSuccess { newMessage ->
+                    // Decrypt the message for display (it will be our own encrypted message)
+                    val displayContent = if (newMessage.content.startsWith("ENC:")) {
+                        val ciphertext = newMessage.content.removePrefix("ENC:")
+                        cryptoService.decrypt(ciphertext).getOrElse { content }
+                    } else {
+                        newMessage.content
+                    }
+                    
+                    val displayMessage = newMessage.copy(content = displayContent)
+                    
                     // Add the new message to the list
                     val currentState = mutableState.value
                     if (currentState is ChatUiState.Success) {
-                        mutableState.value = ChatUiState.Success(currentState.messages + newMessage)
+                        mutableState.value = ChatUiState.Success(currentState.messages + displayMessage)
                     }
                 }
                 .onFailure { error ->

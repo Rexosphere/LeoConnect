@@ -18,9 +18,10 @@ interface LeoRepository {
     suspend fun refreshUnreadMessagesCount()
 
     /**
-     * Sign in with Google and retrieve user profile
+     * Sign in with Google
+     * @param onStatus Callback for status updates during sign-in process
      */
-    suspend fun googleSignIn(): Result<UserProfile>
+    suspend fun googleSignIn(onStatus: (String) -> Unit = {}): Result<UserProfile>
 
     /**
      * Sign out the current user
@@ -86,6 +87,13 @@ interface LeoRepository {
      * Complete onboarding for first-time user
      */
     suspend fun completeOnboarding(leoId: String?, assignedClubId: String?): Result<UserProfile>
+
+    /**
+     * Update user's RSA public key for E2E encryption
+     * @param force If true, overwrite existing key without confirmation
+     */
+    suspend fun updatePublicKey(publicKey: String, force: Boolean = false): Result<UserProfile>
+
 
     /**
      * Follow a user
