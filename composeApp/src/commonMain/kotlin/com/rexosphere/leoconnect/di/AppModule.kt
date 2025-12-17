@@ -78,6 +78,7 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.notifications.NotificationsScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.following.FollowingScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.myposts.MyPostsScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.encryption.EncryptionSetupScreenModel(get(), get()) }
 }
 
 // Platform-specific modules will be added via expect/actual

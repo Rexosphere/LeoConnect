@@ -15,13 +15,13 @@ interface CryptoService {
      * Get the stored public key in PEM format
      * @return Public key string or null if not generated yet
      */
-    suspend fun getPublicKey(): String?
+    fun getPublicKey(): String?
 
     /**
      * Get the stored private key (for internal use only)
      * @return Private key or null if not generated yet
      */
-    suspend fun getPrivateKey(): String?
+    fun getPrivateKey(): String?
 
     /**
      * Encrypt a message using the recipient's public key
@@ -39,13 +39,12 @@ interface CryptoService {
     suspend fun decrypt(ciphertext: String): Result<String>
 
     /**
-     * Check if a key pair has been generated and stored
-     * @return true if keys exist, false otherwise
+     * Check if a key pair exists
      */
-    suspend fun hasKeyPair(): Boolean
+    fun hasKeyPair(): Boolean
 
     /**
-     * Clear all stored keys (for logout/reset)
+     * Clear all stored keys
      */
-    suspend fun clearKeys()
+    fun clearKeys()
 }

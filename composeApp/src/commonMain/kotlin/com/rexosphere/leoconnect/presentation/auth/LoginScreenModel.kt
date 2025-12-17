@@ -15,8 +15,7 @@ data class LoginUiState(
     val isSignedIn: Boolean = false,
     val needsOnboarding: Boolean = false,
     val userProfile: UserProfile? = null,
-    val error: String? = null,
-    val statusMessage: String? = null
+    val error: String? = null
 )
 
 
@@ -28,25 +27,18 @@ class LoginScreenModel(
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
     init {
-        checkAuthStatus()
-    }
-
-    private fun checkAuthStatus() {
         screenModelScope.launch {
-            if (repository.isSignedIn()) {
-                _state.update { it.copy(isLoading = true) }
-                repository.getUserProfile()
-                    .onSuccess { profile ->
+            repository.getAuthState()
+                .collect { userProfile ->
+                    if (userProfile != null) {
                         _state.update {
                             it.copy(
-                                isLoading = false,
                                 isSignedIn = true,
-                                needsOnboarding = !profile.onboardingCompleted,
-                                userProfile = profile
+                                needsOnboarding = !userProfile.onboardingCompleted,
+                                userProfile = userProfile
                             )
                         }
-                    }
-                    .onFailure {
+                    } else {
                         _state.update { it.copy(isLoading = false, isSignedIn = false) }
                     }
             }
@@ -55,12 +47,9 @@ class LoginScreenModel(
 
     fun signInWithGoogle() {
         screenModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null, statusMessage = "Signing in...") }
+            _state.update { it.copy(isLoading = true, error = null) }
 
-            repository.googleSignIn { status ->
-                // Update status message during sign-in
-                _state.update { it.copy(statusMessage = status) }
-            }
+            repository.googleSignIn()
                 .onSuccess { userProfile ->
                     _state.update {
                         it.copy(
@@ -68,8 +57,7 @@ class LoginScreenModel(
                             isSignedIn = true,
                             needsOnboarding = !userProfile.onboardingCompleted,
                             userProfile = userProfile,
-                            error = null,
-                            statusMessage = null
+                            error = null
                         )
                     }
                 }
@@ -78,8 +66,7 @@ class LoginScreenModel(
                         it.copy(
                             isLoading = false,
                             isSignedIn = false,
-                            error = exception.message ?: "Sign in failed",
-                            statusMessage = null
+                            error = exception.message ?: "Sign in failed"
                         )
                     }
                 }

@@ -20,12 +20,15 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.rexosphere.leoconnect.domain.repository.LeoRepository
 import com.rexosphere.leoconnect.presentation.MainScreen
+import com.rexosphere.leoconnect.presentation.encryption.EncryptionSetupScreen
 import org.jetbrains.compose.resources.painterResource
 import leoconnect.composeapp.generated.resources.Res
 import leoconnect.composeapp.generated.resources.ic_google_logo
 import leoconnect.composeapp.generated.resources.leo_gold
 import org.jetbrains.compose.resources.*
+import org.koin.compose.koinInject
 
 class LoginScreen : Screen {
     @Composable
@@ -33,10 +36,17 @@ class LoginScreen : Screen {
         val screenModel = koinScreenModel<LoginScreenModel>()
         val state by screenModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+        val repository = koinInject<LeoRepository>()
 
-        LaunchedEffect(state.isSignedIn, state.needsOnboarding) {
+        LaunchedEffect(state.isSignedIn) {
             if (state.isSignedIn) {
-                if (state.needsOnboarding) {
+                // Check if encryption setup is needed
+                val needsEncryptionSetup = repository.needsEncryptionSetup()
+                
+                if (needsEncryptionSetup) {
+                    // Route through encryption setup
+                    navigator.replace(EncryptionSetupScreen(state.needsOnboarding))
+                } else if (state.needsOnboarding) {
                     navigator.replace(OnboardingScreen())
                 } else {
                     navigator.replace(MainScreen())
@@ -138,17 +148,6 @@ private fun LoginScreenContent(
                         )
                     }
                 }
-            }
-
-            // Status message (for encryption setup)
-            if (state.statusMessage != null && state.isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = state.statusMessage ?: "",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
             }
 
             // Error message

@@ -59,11 +59,11 @@ class CryptoServiceImpl : CryptoService {
         }
     }
 
-    override suspend fun getPublicKey(): String? {
+    override fun getPublicKey(): String? {
         return userDefaults.stringForKey(PUBLIC_KEY_PREF)
     }
 
-    override suspend fun getPrivateKey(): String? {
+    override fun getPrivateKey(): String? {
         // Private key is stored in iOS Keychain and cannot be extracted
         return null
     }
@@ -127,11 +127,11 @@ class CryptoServiceImpl : CryptoService {
         }
     }
 
-    override suspend fun hasKeyPair(): Boolean {
+    override fun hasKeyPair(): Boolean {
         return getPrivateKeyFromKeychain() != null && getPublicKey() != null
     }
 
-    override suspend fun clearKeys() {
+    override fun clearKeys() {
         try {
             // Delete private key from keychain
             val query = mapOf<Any?, Any?>(

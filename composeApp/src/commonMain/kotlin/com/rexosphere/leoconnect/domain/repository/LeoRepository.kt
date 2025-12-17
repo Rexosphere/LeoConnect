@@ -19,9 +19,8 @@ interface LeoRepository {
 
     /**
      * Sign in with Google
-     * @param onStatus Callback for status updates during sign-in process
      */
-    suspend fun googleSignIn(onStatus: (String) -> Unit = {}): Result<UserProfile>
+    suspend fun googleSignIn(): Result<UserProfile>
 
     /**
      * Sign out the current user
@@ -154,6 +153,17 @@ interface LeoRepository {
      * Get user profile by ID
      */
     suspend fun getUserProfileById(userId: String): Result<UserProfile>
+
+    /**
+     * Setup encryption keys (generate if needed and upload to server)
+     * @param force If true, overwrite existing server keys
+     */
+    suspend fun setupEncryptionKeys(force: Boolean = false): Result<Unit>
+
+    /**
+     * Check if encryption setup is needed
+     */
+    suspend fun needsEncryptionSetup(): Boolean
 
     /**
      * Get posts for a specific user

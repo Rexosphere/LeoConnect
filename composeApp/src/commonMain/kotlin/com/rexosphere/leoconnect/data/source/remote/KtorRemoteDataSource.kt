@@ -150,7 +150,7 @@ class KtorRemoteDataSource(
             val force: Boolean
         )
 
-        return client.put("$baseUrl/users/me/public-key") {
+        val response = client.put("$baseUrl/users/me/public-key") {
             contentType(ContentType.Application.Json)
             getToken()?.let { token ->
                 headers {
@@ -158,7 +158,19 @@ class KtorRemoteDataSource(
                 }
             }
             setBody(UpdatePublicKeyRequest(publicKey, force))
-        }.body()
+        }
+        
+        // Check for error status codes
+        if (response.status.value !in 200..299) {
+            val errorBody = try {
+                response.body<Map<String, Any>>()
+            } catch (e: Exception) {
+                mapOf("error" to "HTTP ${response.status.value}")
+            }
+            throw Exception(errorBody["error"]?.toString() ?: errorBody["message"]?.toString() ?: "HTTP ${response.status.value}")
+        }
+        
+        return response.body()
     }
 
 

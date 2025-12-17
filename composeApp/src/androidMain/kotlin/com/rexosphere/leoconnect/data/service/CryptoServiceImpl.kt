@@ -73,11 +73,11 @@ class CryptoServiceImpl(private val context: Context) : CryptoService {
         }
     }
 
-    override suspend fun getPublicKey(): String? {
+    override fun getPublicKey(): String? {
         return encryptedPrefs.getString(PUBLIC_KEY_PREF, null)
     }
 
-    override suspend fun getPrivateKey(): String? {
+    override fun getPrivateKey(): String? {
         // Private key is stored in Android Keystore and cannot be extracted
         // This method returns null as the key is hardware-backed
         return null
@@ -116,11 +116,11 @@ class CryptoServiceImpl(private val context: Context) : CryptoService {
         }
     }
 
-    override suspend fun hasKeyPair(): Boolean {
+    override fun hasKeyPair(): Boolean {
         return keyStore.containsAlias(KEY_ALIAS) && getPublicKey() != null
     }
 
-    override suspend fun clearKeys() {
+    override fun clearKeys() {
         try {
             if (keyStore.containsAlias(KEY_ALIAS)) {
                 keyStore.deleteEntry(KEY_ALIAS)

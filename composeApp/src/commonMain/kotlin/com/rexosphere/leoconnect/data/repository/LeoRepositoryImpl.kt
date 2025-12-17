@@ -38,10 +38,8 @@ class LeoRepositoryImpl(
         }
     }
 
-    override suspend fun googleSignIn(onStatus: (String) -> Unit): Result<UserProfile> {
+    override suspend fun googleSignIn(): Result<UserProfile> {
         return try {
-            onStatus("Signing in with Google...")
-            
             // 1. Sign in with Google and get Firebase token
             val tokenResult = authService.signInWithGoogle()
             if (tokenResult.isFailure) {
@@ -49,8 +47,6 @@ class LeoRepositoryImpl(
             }
 
             val firebaseToken = tokenResult.getOrThrow()
-
-            onStatus("Authenticating with server...")
             
             // 2. Send Firebase token to backend and get user profile
             val profile = remoteDataSource.googleSignIn(firebaseToken)
@@ -59,65 +55,60 @@ class LeoRepositoryImpl(
             // 3. Cache profile and set logged in state
             localDataSource.saveUserProfile(profile)
             localDataSource.setLoggedIn(true)
-
-            // 4. Generate and upload encryption keys
-            try {
-                println("E2E Encryption: Checking key status...")
-                val hasLocalKeys = cryptoService.hasKeyPair()
-                val hasServerKey = profile.publicKey != null
-                
-                println("E2E Encryption: Local keys exist: $hasLocalKeys, Server key exists: $hasServerKey")
-                
-                // Generate keys if we don't have them locally
-                if (!hasLocalKeys) {
-                    onStatus("Setting up encryption...")
-                    println("E2E Encryption: Generating new key pair...")
-                    val keyGenResult = cryptoService.generateKeyPair()
-                    if (keyGenResult.isFailure) {
-                        println("E2E Encryption: Failed to generate keys: ${keyGenResult.exceptionOrNull()?.message}")
-                    } else {
-                        println("E2E Encryption: Key pair generated successfully")
-                    }
-                }
-                
-                // Upload public key if server doesn't have one
-                if (!hasServerKey) {
-                    onStatus("Uploading encryption key...")
-                    println("E2E Encryption: Server doesn't have public key, uploading...")
-                    val localPublicKey = cryptoService.getPublicKey()
-                    if (localPublicKey != null) {
-                        try {
-                            val updatedProfile = remoteDataSource.updatePublicKey(localPublicKey, force = false)
-                            _authState.value = updatedProfile
-                            localDataSource.saveUserProfile(updatedProfile)
-                            println("E2E Encryption: Public key uploaded successfully")
-                        } catch (uploadError: Exception) {
-                            println("E2E Encryption: Failed to upload public key: ${uploadError.message}")
-                            uploadError.printStackTrace()
-                        }
-                    } else {
-                        println("E2E Encryption: No local public key available to upload")
-                    }
-                } else {
-                    println("E2E Encryption: Server already has public key, skipping upload")
-                }
-            } catch (e: Exception) {
-                // Log error but don't fail login
-                println("E2E Encryption: Error setting up encryption: ${e.message}")
-                e.printStackTrace()
-            }
-
-            onStatus("Finalizing...")
             
-            // 5. Refresh unread messages count
+            // 4. Refresh unread messages count
             refreshUnreadMessagesCount()
 
-            Result.success(_authState.value ?: profile)
+            Result.success(profile)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
+    override suspend fun setupEncryptionKeys(force: Boolean): Result<Unit> {
+        return try {
+            println("E2E Encryption: Setting up encryption keys (force=$force)...")
+            
+            // Get or generate local public key
+            val localPublicKey = cryptoService.getPublicKey() ?: run {
+                println("E2E Encryption: No local key found, generating...")
+                val keyGenResult = cryptoService.generateKeyPair()
+                if (keyGenResult.isFailure) {
+                    return Result.failure(keyGenResult.exceptionOrNull() ?: Exception("Failed to generate keys"))
+                }
+                keyGenResult.getOrThrow()
+            }
+            
+            // Upload to server
+            println("E2E Encryption: Uploading public key to server...")
+            val updatedProfile = remoteDataSource.updatePublicKey(localPublicKey, force)
+            _authState.value = updatedProfile
+            localDataSource.saveUserProfile(updatedProfile)
+            
+            println("E2E Encryption: Keys setup successfully")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            println("E2E Encryption: Setup failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun needsEncryptionSetup(): Boolean {
+        return try {
+            val hasLocalKeys = cryptoService.hasKeyPair()
+            val profile = _authState.value
+            val hasServerKey = profile?.publicKey != null
+            
+            println("E2E Encryption: Checking setup status - Local: $hasLocalKeys, Server: $hasServerKey")
+            
+            // Need setup if we don't have local keys OR if we have local keys but server doesn't have any
+            !hasLocalKeys || (hasLocalKeys && !hasServerKey)
+        } catch (e: Exception) {
+            println("E2E Encryption: Error checking setup status: ${e.message}")
+            // Default to needing setup if we can't determine
+            true
+        }
+    }
 
     override suspend fun signOut() {
         authService.signOut()
