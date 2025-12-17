@@ -29,6 +29,8 @@ import leoconnect.composeapp.generated.resources.ic_google_logo
 import leoconnect.composeapp.generated.resources.leo_gold
 import org.jetbrains.compose.resources.*
 import org.koin.compose.koinInject
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 
 class LoginScreen : Screen {
     @Composable
@@ -56,7 +58,8 @@ class LoginScreen : Screen {
 
         LoginScreenContent(
             state = state,
-            onSignInClick = screenModel::signInWithGoogle
+            onSignInClick = screenModel::signInWithGoogle,
+            onEmailSignInClick = { navigator.push(EmailAuthScreen()) }
         )
     }
 }
@@ -64,7 +67,8 @@ class LoginScreen : Screen {
 @Composable
 private fun LoginScreenContent(
     state: LoginUiState,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
+    onEmailSignInClick: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
@@ -147,6 +151,38 @@ private fun LoginScreenContent(
                             color = LocalContentColor.current
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Email Sign-In Button
+            OutlinedButton(
+                onClick = onEmailSignInClick,
+                enabled = !state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        text = "Continue with Email",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
 

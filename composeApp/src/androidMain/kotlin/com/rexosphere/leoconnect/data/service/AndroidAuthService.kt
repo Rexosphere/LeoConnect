@@ -130,6 +130,115 @@ class AndroidAuthService(
         }
     }
 
+    override suspend fun createUserWithEmailPassword(email: String, password: String): Result<String> {
+        return try {
+            Log.d(TAG, "Creating user with email: $email")
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
+            
+            val currentUser = firebaseAuth.currentUser
+                ?: return Result.failure(Exception("Failed to create user"))
+            
+            currentUser.sendEmailVerification()
+            Log.d(TAG, "Verification email sent to: $email")
+            
+            val firebaseToken = currentUser.getIdToken(false)
+                ?: return Result.failure(Exception("Failed to get Firebase token after account creation"))
+            
+            Log.d(TAG, "Successfully created user account for: $email")
+            Result.success(firebaseToken)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create user with email", e)
+            val errorMessage = when {
+                e.message?.contains("email address is already in use") == true ->
+                    "This email is already registered. Please sign in instead."
+                e.message?.contains("badly formatted") == true ->
+                    "Please enter a valid email address."
+                e.message?.contains("password is invalid") == true || e.message?.contains("at least 6 characters") == true ->
+                    "Password must be at least 6 characters."
+                else -> "Failed to create account: ${e.message}"
+            }
+            Result.failure(Exception(errorMessage, e))
+        }
+    }
+
+    override suspend fun signInWithEmailPassword(email: String, password: String): Result<String> {
+        return try {
+            Log.d(TAG, "Signing in with email: $email")
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+            
+            val currentUser = firebaseAuth.currentUser
+                ?: return Result.failure(Exception("Sign in failed"))
+            
+            currentUser.reload()
+            
+            if (!currentUser.isEmailVerified) {
+                Log.d(TAG, "Email not verified for: $email")
+                return Result.failure(com.rexosphere.leoconnect.domain.exception.EmailNotVerifiedException("Please verify your email address before signing in."))
+            }
+            
+            val firebaseToken = currentUser.getIdToken(false)
+                ?: return Result.failure(Exception("Failed to get Firebase token"))
+            
+            Log.d(TAG, "Successfully signed in with email: $email")
+            Result.success(firebaseToken)
+        } catch (e: com.rexosphere.leoconnect.domain.exception.EmailNotVerifiedException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to sign in with email", e)
+            val errorMessage = when {
+                e.message?.contains("no user record") == true || e.message?.contains("USER_NOT_FOUND") == true ->
+                    "No account found with this email. Please sign up first."
+                e.message?.contains("password is invalid") == true || e.message?.contains("INVALID_PASSWORD") == true ->
+                    "Incorrect password. Please try again."
+                e.message?.contains("badly formatted") == true ->
+                    "Please enter a valid email address."
+                e.message?.contains("blocked") == true ->
+                    "Too many failed attempts. Please try again later."
+                else -> "Sign in failed: ${e.message}"
+            }
+            Result.failure(Exception(errorMessage, e))
+        }
+    }
+
+    override suspend fun sendEmailVerification(): Result<Unit> {
+        return try {
+            val currentUser = firebaseAuth.currentUser
+                ?: return Result.failure(Exception("No user signed in"))
+            
+            currentUser.sendEmailVerification()
+            Log.d(TAG, "Verification email sent")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send verification email", e)
+            Result.failure(Exception("Failed to send verification email: ${e.message}", e))
+        }
+    }
+
+    override suspend fun isEmailVerified(): Boolean {
+        return try {
+            val currentUser = firebaseAuth.currentUser ?: return false
+            currentUser.reload()
+            currentUser.isEmailVerified
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check email verification status", e)
+            false
+        }
+    }
+
+    override suspend fun reloadUser(): Result<Unit> {
+        return try {
+            val currentUser = firebaseAuth.currentUser
+                ?: return Result.failure(Exception("No user signed in"))
+            
+            currentUser.reload()
+            Log.d(TAG, "User reloaded successfully")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to reload user", e)
+            Result.failure(Exception("Failed to refresh user status: ${e.message}", e))
+        }
+    }
+
     override suspend fun getCurrentToken(forceRefresh: Boolean): String? {
         return try {
             firebaseAuth.currentUser?.getIdToken(forceRefresh)
