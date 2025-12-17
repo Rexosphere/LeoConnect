@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.rexosphere.leoconnect.domain.model.Conversation
 import com.rexosphere.leoconnect.domain.repository.LeoRepository
+import com.rexosphere.leoconnect.domain.service.CryptoService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,7 +23,8 @@ sealed class UserSearchState {
 }
 
 class MessagesScreenModel(
-    private val repository: LeoRepository
+    private val repository: LeoRepository,
+    private val cryptoService: CryptoService
 ) : StateScreenModel<MessagesUiState>(MessagesUiState.Loading) {
     val uiState = mutableState
 
@@ -38,7 +40,19 @@ class MessagesScreenModel(
             mutableState.value = MessagesUiState.Loading
             repository.getConversations()
                 .onSuccess { conversations ->
-                    mutableState.value = MessagesUiState.Success(conversations)
+                    // Decrypt message previews
+                    val decryptedConversations = conversations.map { conversation ->
+                        val decryptedMessage = if (conversation.lastMessage.startsWith("ENC:")) {
+                            val ciphertext = conversation.lastMessage.removePrefix("ENC:")
+                            cryptoService.decrypt(ciphertext).getOrElse {
+                                "🔒 Encrypted message"
+                            }
+                        } else {
+                            conversation.lastMessage
+                        }
+                        conversation.copy(lastMessage = decryptedMessage)
+                    }
+                    mutableState.value = MessagesUiState.Success(decryptedConversations)
                 }
                 .onFailure { error ->
                     mutableState.value = MessagesUiState.Error(error.message ?: "Failed to load conversations")

@@ -143,6 +143,8 @@ class AndroidAuthService(
     }
 
     override fun getCurrentUserId(): String? {
+        // Firebase UID is the OpenID Connect 'sub' claim
+        // This is consistent with desktop implementation
         return firebaseAuth.currentUser?.uid
     }
 

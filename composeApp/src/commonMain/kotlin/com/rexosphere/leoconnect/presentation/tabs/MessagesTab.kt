@@ -259,6 +259,7 @@ private fun MessagesTab(
                                             email = "",
                                             displayName = conversation.displayName,
                                             photoURL = conversation.photoUrl,
+                                            publicKey = conversation.publicKey,
                                             leoId = null,
                                             assignedClubId = null
                                         )

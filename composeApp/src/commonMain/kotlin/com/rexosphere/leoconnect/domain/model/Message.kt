@@ -17,6 +17,7 @@ data class Conversation(
     val userId: String,
     val displayName: String,
     val photoUrl: String?,
+    val publicKey: String?,
     val lastMessage: String,
     val lastMessageAt: String,
     val unreadCount: Int

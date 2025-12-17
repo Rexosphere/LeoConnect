@@ -74,7 +74,7 @@ val commonModule = module {
     factory { com.rexosphere.leoconnect.presentation.createevent.CreateEventScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.chat.ChatScreenModel(get(), get()) }
     factory { com.rexosphere.leoconnect.presentation.chat.LeoAiChatScreenModel(get()) }
-    factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get()) }
+    factory { com.rexosphere.leoconnect.presentation.tabs.MessagesScreenModel(get(), get()) }
     factory { com.rexosphere.leoconnect.presentation.notifications.NotificationsScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.following.FollowingScreenModel(get()) }
     factory { com.rexosphere.leoconnect.presentation.myposts.MyPostsScreenModel(get()) }

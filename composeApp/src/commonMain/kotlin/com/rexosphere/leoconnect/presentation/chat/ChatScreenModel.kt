@@ -51,16 +51,21 @@ class ChatScreenModel(
 
         screenModelScope.launch {
             // Encrypt message if receiver has a public key
+            println("E2E Encryption: Receiver public key present: ${receiverPublicKey != null}")
             val messageContent = if (receiverPublicKey != null) {
+                println("E2E Encryption: Attempting to encrypt message...")
                 cryptoService.encrypt(content, receiverPublicKey).getOrElse {
                     // If encryption fails, send unencrypted with warning
-                    println("Failed to encrypt message: ${it.message}")
+                    println("E2E Encryption: Failed to encrypt message: ${it.message}")
+                    it.printStackTrace()
                     content
                 }.let { encrypted ->
+                    println("E2E Encryption: Message encrypted successfully, length: ${encrypted.length}")
                     "ENC:$encrypted" // Prefix to indicate encrypted message
                 }
             } else {
                 // Receiver doesn't have public key, send unencrypted
+                println("E2E Encryption: Receiver has no public key, sending unencrypted")
                 content
             }
 

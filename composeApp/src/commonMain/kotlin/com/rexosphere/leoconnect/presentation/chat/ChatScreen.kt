@@ -9,6 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +27,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.rexosphere.leoconnect.domain.model.Message
 import com.rexosphere.leoconnect.domain.model.UserProfile
+import com.rexosphere.leoconnect.domain.repository.LeoRepository
 import com.rexosphere.leoconnect.domain.service.AuthService
 import com.rexosphere.leoconnect.presentation.LocalBottomBarPadding
 import org.koin.compose.koinInject
@@ -43,10 +47,13 @@ data class ChatScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = koinScreenModel<ChatScreenModel>()
-        val authService = koinInject<AuthService>()
+        val repository = koinInject<LeoRepository>()
         val uiState by screenModel.uiState.collectAsState()
         var messageText by remember { mutableStateOf("") }
-        val currentUserId = authService.getCurrentUserId()
+        
+        // Get current user ID from repository (uses Google ID, not Firebase UID)
+        val currentUserProfile by repository.getAuthState().collectAsState(initial = null)
+        val currentUserId = currentUserProfile?.uid
 
         LaunchedEffect(otherUser.uid) {
             screenModel.loadMessages(otherUser.uid)
@@ -57,9 +64,10 @@ data class ChatScreen(
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (otherUser.photoURL != null) {
+                            val photoUrl = otherUser.photoURL
+                            if (photoUrl != null) {
                                 KamelImage(
-                                    resource = asyncPainterResource(otherUser.photoURL),
+                                    resource = asyncPainterResource(photoUrl),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(32.dp)
@@ -91,7 +99,30 @@ data class ChatScreen(
                                 }
                             }
                             Spacer(Modifier.width(12.dp))
-                            Text(otherUser.displayName)
+                            Column {
+                                Text(otherUser.displayName)
+                                // Encryption status
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = if (otherUser.publicKey != null) Icons.Default.Lock else Icons.Default.LockOpen,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = if (otherUser.publicKey != null) 
+                                            MaterialTheme.colorScheme.primary 
+                                        else 
+                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = if (otherUser.publicKey != null) "Encrypted" else "Not encrypted",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (otherUser.publicKey != null) 
+                                            MaterialTheme.colorScheme.primary 
+                                        else 
+                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
                         }
                     },
                     navigationIcon = {
@@ -227,6 +258,12 @@ private fun MessagesList(
     ) {
         items(messages, key = { it.id }) { message ->
             val isCurrentUser = message.senderId == currentUserId
+            // Debug logging
+            if (messages.indexOf(message) == 0) {
+                println("Chat Debug: Current user ID: $currentUserId")
+                println("Chat Debug: Message sender ID: ${message.senderId}")
+                println("Chat Debug: Is current user: $isCurrentUser")
+            }
             MessageBubble(
                 message = message,
                 isCurrentUser = isCurrentUser,
